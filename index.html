@@ -1,0 +1,350 @@
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SEO Tools Suite</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <!-- Theme switcher will be added via JavaScript -->
+  
+  <header>
+    <div class="container">
+      <h1>SEO Tools Suite</h1>
+      <p>Professional tools for content analysis and optimization</p>
+    </div>
+  </header>
+
+  <main class="container">
+    <div class="tools-navigation">
+      <button class="nav-btn active" data-tool="html-analyzer">HTML Analyzer</button>
+      <button class="nav-btn" data-tool="keyword-density">Keyword Density</button>
+      <button class="nav-btn" data-tool="tf-idf">TF-IDF Analysis</button>
+      <button class="nav-btn" data-tool="readability">Readability Score</button>
+      <button class="nav-btn" data-tool="meta-tags">Meta Tags Generator</button>
+      <button class="nav-btn" data-tool="schema-generator">Schema Generator</button>
+      <button class="nav-btn" data-tool="keyword-database">Keyword Database</button>
+      <button class="nav-btn" data-tool="sentiment-analysis">Sentiment Analysis</button>
+      <button class="nav-btn" data-tool="content-editor">Content Editor</button>
+    </div>
+
+    <div class="tool-container active" id="html-analyzer">
+      <h2>HTML Analyzer</h2>
+      <div class="tool-input">
+        <textarea placeholder="Paste your HTML code here..."></textarea>
+        <button class="analyze-btn">Analyze HTML</button>
+      </div>
+      <div class="results">
+        <div class="result-cards">
+          <div class="card">
+            <h3>Structure Analysis</h3>
+            <div id="structure-results"></div>
+          </div>
+          <div class="card">
+            <h3>SEO Issues</h3>
+            <div id="seo-issues"></div>
+          </div>
+          <div class="card">
+            <h3>Recommendations</h3>
+            <div id="recommendations"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tool-container" id="keyword-density">
+      <h2>Keyword Density Analyzer</h2>
+      <div class="tool-input">
+        <textarea placeholder="Paste your content here..."></textarea>
+        <button class="analyze-btn">Analyze Keywords</button>
+      </div>
+      <div class="results">
+        <div class="result-charts">
+          <div class="chart-container">
+            <canvas id="keywordChart"></canvas>
+          </div>
+          <div class="keyword-list" id="keyword-results"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tool-container" id="tf-idf">
+      <h2>TF-IDF Analysis</h2>
+      <div class="tool-input">
+        <div class="multi-input">
+          <div>
+            <label>Your Content</label>
+            <textarea placeholder="Paste your content here..."></textarea>
+          </div>
+          <div>
+            <label>Competitor Content (optional)</label>
+            <textarea placeholder="Paste competitor content for comparison..."></textarea>
+          </div>
+        </div>
+        <button class="analyze-btn">Calculate TF-IDF</button>
+      </div>
+      <div class="results">
+        <div class="tf-idf-results" id="tf-idf-results"></div>
+      </div>
+    </div>
+
+    <div class="tool-container" id="readability">
+      <h2>Content Readability Analyzer</h2>
+      <div class="tool-input">
+        <textarea placeholder="Paste your content here..."></textarea>
+        <button class="analyze-btn">Check Readability</button>
+      </div>
+      <div class="results">
+        <div class="result-cards">
+          <div class="card">
+            <h3>Readability Scores</h3>
+            <div id="readability-scores"></div>
+          </div>
+          <div class="card">
+            <h3>Content Statistics</h3>
+            <div id="content-stats"></div>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="readabilityChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="tool-container" id="meta-tags">
+      <h2>Meta Tags Generator</h2>
+      <div class="tool-input">
+        <div class="form-fields">
+          <div class="form-group">
+            <label>Page Title</label>
+            <input type="text" id="page-title" placeholder="Enter your page title...">
+          </div>
+          <div class="form-group">
+            <label>Page Description</label>
+            <textarea id="page-description" placeholder="Enter your page description..."></textarea>
+          </div>
+          <div class="form-group">
+            <label>Keywords (comma separated)</label>
+            <input type="text" id="keywords" placeholder="keyword1, keyword2, keyword3...">
+          </div>
+          <div class="form-group">
+            <label>Canonical URL (optional)</label>
+            <input type="text" id="canonical-url" placeholder="https://example.com/page">
+          </div>
+        </div>
+        <button class="analyze-btn">Generate Meta Tags</button>
+      </div>
+      <div class="results">
+        <div class="card">
+          <h3>Meta Tags Code</h3>
+          <pre id="meta-output"></pre>
+          <button id="copy-meta" class="copy-btn">Copy to Clipboard</button>
+        </div>
+        <div class="card">
+          <h3>Preview</h3>
+          <div class="serp-preview" id="serp-preview"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tool-container" id="schema-generator">
+      <h2>Schema Markup Generator</h2>
+      <div class="tool-input">
+        <div class="schema-type-selector">
+          <label>Select Schema Type:</label>
+          <select id="schema-type">
+            <option value="LocalBusiness">Local Business</option>
+            <option value="Organization">Organization</option>
+            <option value="Person">Person</option>
+            <option value="Product">Product</option>
+            <option value="Event">Event</option>
+            <option value="Article">Article</option>
+            <option value="FAQ">FAQ Page</option>
+          </select>
+        </div>
+        <div id="schema-fields-container">
+          <!-- Dynamic fields will be added here -->
+        </div>
+        <button class="analyze-btn" id="generate-schema-btn">Generate Schema</button>
+      </div>
+      <div class="results">
+        <div class="card">
+          <h3>Schema Markup Code</h3>
+          <pre id="schema-output"></pre>
+          <button id="copy-schema" class="copy-btn">Copy to Clipboard</button>
+        </div>
+        <div class="card">
+          <h3>Schema Information</h3>
+          <div id="schema-info">
+            <p>Schema markup helps search engines understand your content better, potentially enhancing your search results with rich snippets.</p>
+            <p>Select a schema type above to get started.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tool-container" id="keyword-database">
+      <h2>Keyword Search Database</h2>
+      <div class="tool-input">
+        <div class="search-area">
+          <input type="text" id="keyword-search" placeholder="Enter a keyword to search...">
+          <button class="analyze-btn" id="search-keyword-btn">Search</button>
+        </div>
+      </div>
+      <div class="results">
+        <div class="keyword-results" id="keyword-search-results"></div>
+        <div class="result-cards">
+          <div class="card">
+            <h3>Related Keywords</h3>
+            <div id="related-keywords"></div>
+          </div>
+          <div class="card">
+            <h3>Trend Analysis</h3>
+            <div class="trend-chart-container">
+              <canvas id="keywordTrendChart"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tool-container" id="sentiment-analysis">
+      <h2>Sentiment Analysis</h2>
+      <div class="tool-input">
+        <div class="input-options">
+          <button class="option-btn active" data-source="paste">Paste Content</button>
+          <button class="option-btn" data-source="url">Analyze URL</button>
+          <button class="option-btn" data-source="file">Upload Document</button>
+        </div>
+        
+        <div class="input-area" id="paste-content">
+          <textarea id="sentiment-content" placeholder="Paste your content here..." style="min-height: 250px;"></textarea>
+        </div>
+        
+        <div class="input-area hidden" id="url-content">
+          <input type="url" id="sentiment-url" placeholder="Enter URL to analyze (e.g., https://example.com/page)">
+        </div>
+        
+        <div class="input-area hidden" id="file-content">
+          <label for="document-upload" class="file-upload-label">
+            Choose a document to analyze (.docx, .pdf, .txt)
+            <input type="file" id="document-upload" accept=".docx,.pdf,.txt">
+          </label>
+          <div id="file-name"></div>
+        </div>
+        
+        <button class="analyze-btn" id="analyze-sentiment-btn">Analyze Sentiment</button>
+      </div>
+      
+      <div class="results">
+        <div class="result-cards">
+          <div class="card">
+            <h3>Sentiment Analysis</h3>
+            <div id="sentiment-results">
+              <div class="sentiment-score">
+                <div class="meter-label">Overall Sentiment:</div>
+                <div class="sentiment-meter">
+                  <div class="sentiment-fill" style="width: 0%"></div>
+                </div>
+                <div class="sentiment-value">Neutral (0.0)</div>
+              </div>
+              <div class="sentiment-breakdown">
+                <div class="sentiment-item">
+                  <span>Positive:</span> <span id="positive-score">0%</span>
+                </div>
+                <div class="sentiment-item">
+                  <span>Negative:</span> <span id="negative-score">0%</span>
+                </div>
+                <div class="sentiment-item">
+                  <span>Neutral:</span> <span id="neutral-score">0%</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Heading Structure</h3>
+            <div id="heading-analysis"></div>
+          </div>
+          <div class="card">
+            <h3>Content Context</h3>
+            <div id="context-analysis"></div>
+          </div>
+        </div>
+        <div class="card keyword-relevance">
+          <h3>Keyword Relevance</h3>
+          <div id="keyword-relevance"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tool-container" id="content-editor">
+      <h2>Content Editor Suite</h2>
+      <div class="content-editor-container">
+        <!-- Markdown Editor -->
+        <div class="editor-container">
+            <div class="toolbar">
+                <button data-command="bold"><i class="fas fa-bold"></i></button>
+                <button data-command="italic"><i class="fas fa-italic"></i></button>
+                <button data-command="link"><i class="fas fa-link"></i></button>
+                <button data-command="code"><i class="fas fa-code"></i></button>
+                <button data-command="image"><i class="fas fa-image"></i></button>
+                <button data-command="table"><i class="fas fa-table"></i></button>
+            </div>
+            <textarea id="markdownEditor" placeholder="Write your Markdown here..."></textarea>
+            <div class="preview-area markdown-preview" id="markdownPreview"></div>
+        </div>
+
+        <!-- Mermaid Editor -->
+        <div class="editor-container">
+            <div class="toolbar">
+                <button id="exportMermaid"><i class="fas fa-download"></i> Export SVG</button>
+                <select id="mermaidTemplates">
+                    <option value="">Templates</option>
+                    <option value="flowchart">Flowchart</option>
+                    <option value="sequence">Sequence Diagram</option>
+                    <option value="gantt">Gantt Chart</option>
+                </select>
+            </div>
+            <textarea id="mermaidEditor" placeholder="Enter Mermaid diagram code...">graph TD
+    A[Start] --> B{Decision}
+    B -->|Yes| C[Result]
+    B -->|No| D[Alternative]</textarea>
+            <div class="preview-area" id="mermaidPreview"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    <div class="container">
+      <p>SEO Tools Suite - A comprehensive collection of SEO analysis tools</p>
+    </div>
+  </footer>
+
+  <!-- AI Chatbot -->
+  <div class="chat-button" id="chat-button">
+    <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M20 2H4C2.9 2 2 2.9 2 4V22L6 18H20C21.1 18 22 17.1 22 16V4C22 2.9 21.1 2 20 2Z" fill="currentColor"/>
+    </svg>
+  </div>
+  
+  <div class="chat-container" id="chat-container">
+    <div class="chat-header">
+      <h3>SEO Assistant</h3>
+      <button class="close-chat" id="close-chat">×</button>
+    </div>
+    <div class="chat-messages" id="chat-messages"></div>
+    <div class="chat-input-container">
+      <input type="text" class="chat-input" id="chat-input" placeholder="Ask me about SEO tools...">
+      <button class="send-button" id="send-button">
+        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2.01 21L23 12L2.01 3L2 10L17 12L2 14L2.01 21Z" fill="currentColor"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <script src="main.js"></script>
+</body>
+</html>
