@@ -3,12 +3,6 @@
   padding: 0;
   box-sizing: border-box;
 }
-.tool-container {
-    display: none;
-}
-.tool-container.active {
-    display: block;
-}
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -886,6 +880,9 @@ footer {
   display: flex;
   flex-direction: column;
   gap: 8px;
+  margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border-color);
 }
 
 .theme-button {
@@ -1177,6 +1174,9 @@ footer {
   
   .tool-container {
     padding: 1.5rem;
+  }
+  .theme-switcher{
+    display:none;
   }
 }
 
