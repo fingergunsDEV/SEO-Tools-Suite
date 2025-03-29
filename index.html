@@ -5,6 +5,9 @@
   <title>SEO Tools Suite</title>
   <link rel="stylesheet" href="styles.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  	<script src="https://cdn.jsdelivr.net/npm/@material/web@latest/material.min.js"></script>
+	<link href="https://cdn.jsdelivr.net/npm/@material/web@latest/material.min.css" rel="stylesheet">
+	<script src="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/lib/index.js"></script>
 </head>
 <body>
   <!-- Theme switcher will be added via JavaScript -->
@@ -28,6 +31,7 @@
       <button class="nav-btn" data-tool="keyword-database">Keyword Database</button>
       <button class="nav-btn" data-tool="sentiment-analysis">Sentiment Analysis</button>
       <button class="nav-btn" data-tool="content-editor">Content Editor</button>
+      
     </div>
 
     <div class="tool-container active" id="html-analyzer">
@@ -65,6 +69,121 @@
           <div class="chart-container">
             <canvas id="keywordChart"></canvas>
           </div>
+          	<div class="container">
+		<h1>Branded vs Non-branded Keywords</h1>
+
+		<div class="content-section">
+			<h3>Enter Branded Keywords</h3>
+			<input type="text" id="branded-keywords" placeholder="Enter branded keywords (comma separated)" />
+			<h3>Enter All Keywords (one per line)</h3>
+			<textarea id="all-keywords" placeholder="Paste your keywords here, one per line"></textarea>
+			<button id="analyze-btn">Analyze Keywords</button>
+		</div>
+
+		<div class="chart-container">
+			<canvas id="keywordPerformanceChart"></canvas>
+		</div>
+		<div class="chart-container">
+			<canvas id="keywordPieChart"></canvas>
+		</div>
+		<div id="keyword-lists" class="content-section">
+		</div>
+		<div class="metric-container">
+			<div class="metric" id="branded-percentage"></div>
+			<div class="metric" id="informational-count"></div>
+			<div class="metric" id="transactional-count"></div>
+			<div class="metric" id="navigational-count"></div>
+		</div>
+	</div>
+
+	<script>
+		document.addEventListener('DOMContentLoaded', function() {
+			const barCtx = document.getElementById('keywordPerformanceChart').getContext('2d');
+			const pieCtx = document.getElementById('keywordPieChart').getContext('2d');
+			const barChart = new Chart(barCtx, {
+				type: 'bar',
+				data: {
+					labels: ['Branded', 'Non-Branded'],
+					datasets: [{
+						label: 'Average CTR',
+						data: [0, 0],
+						backgroundColor: ['rgba(54, 162, 235, 0.6)', 'rgba(255, 99, 132, 0.6)'],
+						borderColor: ['rgba(54, 162, 235, 1)', 'rgba(255, 99, 132, 1)'],
+						borderWidth: 1
+					}]
+				},
+				options: {
+					scales: {
+						y: {
+							beginAtZero: true
+						}
+					}
+				}
+			});
+			const pieChart = new Chart(pieCtx, {
+				type: 'pie',
+				data: {
+					labels: ['Branded', 'Non-Branded'],
+					datasets: [{
+						data: [0, 0],
+						backgroundColor: ['rgba(54, 162, 235, 0.6)', 'rgba(255, 99, 132, 0.6)'],
+						borderColor: ['rgba(54, 162, 235, 1)', 'rgba(255, 99, 132, 1)'],
+						borderWidth: 1
+					}]
+				},
+			});
+			document.getElementById('analyze-btn').addEventListener('click', () => {
+				const brandedKeywords = document.getElementById('branded-keywords').value.toLowerCase().split(',').map(k => k.trim());
+				const allKeywords = document.getElementById('all-keywords').value.toLowerCase().split('\n').map(k => k.trim());
+				let brandedData = {
+					keywords: [],
+					ctr: 0
+				};
+				let nonBrandedData = {
+					keywords: [],
+					ctr: 0
+				};
+				let informationalCount = 0;
+				let transactionalCount = 0;
+				let navigationalCount = 0;
+				allKeywords.forEach(keyword => {
+					const isBranded = brandedKeywords.some(branded => keyword.includes(branded));
+					if (isBranded) {
+						brandedData.keywords.push(keyword);
+						brandedData.ctr += Math.random() * 10;
+					} else {
+						nonBrandedData.keywords.push(keyword);
+						nonBrandedData.ctr += Math.random() * 5;
+					}
+					if (keyword.includes('how') || keyword.includes('what')) informationalCount++;
+					if (keyword.includes('buy') || keyword.includes('purchase')) transactionalCount++;
+					if (keyword.includes('company') || keyword.includes('brand')) navigationalCount++;
+				});
+				const brandedAvgCtr = brandedData.keywords.length > 0 ? brandedData.ctr / brandedData.keywords.length : 0;
+				const nonBrandedAvgCtr = nonBrandedData.keywords.length > 0 ? nonBrandedData.ctr / nonBrandedData.keywords.length : 0;
+				const brandedPercentage = (brandedData.keywords.length / allKeywords.length) * 100 || 0;
+				barChart.data.datasets[0].data = [brandedAvgCtr, nonBrandedAvgCtr];
+				barChart.update();
+				pieChart.data.datasets[0].data = [brandedData.keywords.length, nonBrandedData.keywords.length];
+				pieChart.update();
+				document.getElementById('branded-percentage').textContent = `Branded %: ${brandedPercentage.toFixed(2)}%`;
+				document.getElementById('informational-count').textContent = `Informational: ${informationalCount}`;
+				document.getElementById('transactional-count').textContent = `Transactional: ${transactionalCount}`;
+				document.getElementById('navigational-count').textContent = `Navigational: ${navigationalCount}`;
+				displayKeywordLists(brandedData.keywords, nonBrandedData.keywords);
+			});
+
+			function displayKeywordLists(branded, nonBranded) {
+				const listsDiv = document.getElementById('keyword-lists');
+				listsDiv.innerHTML = `
+                <h3>Branded Keywords</h3>
+                <p>${branded.join(', ')}</p>
+                <h3>Non-Branded Keywords</h3>
+                <p>${nonBranded.join(', ')}</p>
+                `;
+			}
+		});
+	</script>
           <div class="keyword-list" id="keyword-results"></div>
         </div>
       </div>
