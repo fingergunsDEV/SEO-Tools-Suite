@@ -30,7 +30,7 @@ document.addEventListener('DOMContentLoaded', () => {
   setupSchemaGenerator();
   setupKeywordDatabase(); 
   setupSentimentAnalysis();
-  setupContentEditor(); // Add this line
+  setupContentEditor(); 
   setupChatbot();
   setupThemeSwitcher();
   setupApiManagement();
@@ -844,7 +844,7 @@ function setupSchemaGenerator() {
   const generateBtn = document.getElementById('generate-schema-btn');
   const copyBtn = document.getElementById('copy-schema');
   const schemaOutput = document.getElementById('schema-output');
-
+  
   // Schema field definitions for different types
   const schemaFields = {
     LocalBusiness: [
@@ -858,11 +858,7 @@ function setupSchemaGenerator() {
       { name: 'zipCode', label: 'Zip Code', type: 'text', required: true },
       { name: 'country', label: 'Country', type: 'text', required: true },
       { name: 'priceRange', label: 'Price Range (e.g. $$$)', type: 'text', required: false },
-      { name: 'image', label: 'Business Image URL', type: 'url', required: false },
-      // Add more LocalBusiness properties
-      { name: 'openingHours', label: 'Opening Hours', type: 'textarea', required: false, description: 'Use schema.org format' },
-      { name: 'geo', label: 'Geographic Coordinates', type: 'geo', required: false, description: 'Latitude and Longitude' },
-      { name: 'aggregateRating', label: 'Aggregate Rating', type: 'aggregateRating', required: false },
+      { name: 'image', label: 'Business Image URL', type: 'url', required: false }
     ],
     Organization: [
       { name: 'name', label: 'Organization Name', type: 'text', required: true },
@@ -870,9 +866,7 @@ function setupSchemaGenerator() {
       { name: 'url', label: 'Website URL', type: 'url', required: true },
       { name: 'logo', label: 'Logo URL', type: 'url', required: false },
       { name: 'contactPoint', label: 'Contact Phone', type: 'tel', required: false },
-      { name: 'email', label: 'Email', type: 'email', required: false },
-      // Add more Organization properties
-      { name: 'sameAs', label: 'Social Media Links', type: 'textarea', required: false, description: 'Comma-separated URLs' },
+      { name: 'email', label: 'Email', type: 'email', required: false }
     ],
     Person: [
       { name: 'name', label: 'Full Name', type: 'text', required: true },
@@ -880,9 +874,7 @@ function setupSchemaGenerator() {
       { name: 'worksFor', label: 'Company Name', type: 'text', required: false },
       { name: 'url', label: 'Website URL', type: 'url', required: false },
       { name: 'image', label: 'Profile Image URL', type: 'url', required: false },
-      { name: 'description', label: 'Brief Biography', type: 'textarea', required: false },
-      // Add more Person properties
-      { name: 'sameAs', label: 'Social Media Links', type: 'textarea', required: false, description: 'Comma-separated URLs' },
+      { name: 'description', label: 'Brief Biography', type: 'textarea', required: false }
     ],
     Product: [
       { name: 'name', label: 'Product Name', type: 'text', required: true },
@@ -891,13 +883,8 @@ function setupSchemaGenerator() {
       { name: 'brand', label: 'Brand Name', type: 'text', required: true },
       { name: 'offers', label: 'Price (USD)', type: 'number', required: true },
       { name: 'sku', label: 'SKU', type: 'text', required: false },
-      {
-        name: 'availability', label: 'Availability', type: 'select', required: true,
-        options: ['InStock', 'OutOfStock', 'PreOrder', 'Discontinued']
-      },
-      // Add more Product properties
-      { name: 'aggregateRating', label: 'Aggregate Rating', type: 'aggregateRating', required: false },
-      { name: 'review', label: 'Product Reviews', type: 'review', required: false },
+      { name: 'availability', label: 'Availability', type: 'select', required: true, 
+        options: ['InStock', 'OutOfStock', 'PreOrder', 'Discontinued'] }
     ],
     Event: [
       { name: 'name', label: 'Event Name', type: 'text', required: true },
@@ -908,9 +895,7 @@ function setupSchemaGenerator() {
       { name: 'address', label: 'Street Address', type: 'text', required: true },
       { name: 'city', label: 'City', type: 'text', required: true },
       { name: 'image', label: 'Event Image URL', type: 'url', required: false },
-      { name: 'offers', label: 'Ticket Price (USD)', type: 'number', required: false },
-      // Add more Event properties
-      { name: 'performer', label: 'Performers', type: 'text', required: false },
+      { name: 'offers', label: 'Ticket Price (USD)', type: 'number', required: false }
     ],
     Article: [
       { name: 'headline', label: 'Article Headline', type: 'text', required: true },
@@ -920,9 +905,7 @@ function setupSchemaGenerator() {
       { name: 'datePublished', label: 'Date Published', type: 'date', required: true },
       { name: 'dateModified', label: 'Date Modified', type: 'date', required: false },
       { name: 'publisher', label: 'Publisher Name', type: 'text', required: true },
-      { name: 'publisherLogo', label: 'Publisher Logo URL', type: 'url', required: false },
-      // Add more Article properties
-      { name: 'articleSection', label: 'Article Section', type: 'text', required: false },
+      { name: 'publisherLogo', label: 'Publisher Logo URL', type: 'url', required: false }
     ],
     FAQ: [
       { name: 'title', label: 'FAQ Page Title', type: 'text', required: true },
@@ -932,44 +915,32 @@ function setupSchemaGenerator() {
       { name: 'question2', label: 'Question 2', type: 'text', required: false },
       { name: 'answer2', label: 'Answer 2', type: 'textarea', required: false },
       { name: 'question3', label: 'Question 3', type: 'text', required: false },
-      { name: 'answer3', label: 'Answer 3', type: 'textarea', required: false },
-      // Add more FAQ properties (if needed)
-    ],
-    // Add more schema types here
-    // Example:
-    WebSite: [
-      { name: 'name', label: 'Website Name', type: 'text', required: true },
-      { name: 'url', label: 'Website URL', type: 'url', required: true },
-      { name: 'description', label: 'Website Description', type: 'textarea', required: false },
-      { name: 'potentialAction', label: 'Search Action Target', type: 'text', required: false, description: 'URL template for search' },
-    ],
-    BreadcrumbList: [
-      { name: 'itemListElement', label: 'Breadcrumb Items', type: 'breadcrumb', required: true },
-    ],
+      { name: 'answer3', label: 'Answer 3', type: 'textarea', required: false }
+    ]
   };
-
+  
   // Generate form fields based on schema type
   schemaType.addEventListener('change', () => {
     renderFields(schemaType.value);
   });
-
+  
   // Initialize with default type
   renderFields(schemaType.value);
-
+  
   function renderFields(type) {
     const fields = schemaFields[type];
     fieldsContainer.innerHTML = '';
-
+    
     fields.forEach(field => {
       const fieldGroup = document.createElement('div');
       fieldGroup.className = 'form-group';
-
+      
       const fieldLabel = document.createElement('label');
       fieldLabel.textContent = field.label + (field.required ? ' *' : '');
       fieldGroup.appendChild(fieldLabel);
-
+      
       let inputElement;
-
+      
       if (field.type === 'textarea') {
         inputElement = document.createElement('textarea');
       } else if (field.type === 'select') {
@@ -980,103 +951,28 @@ function setupSchemaGenerator() {
           optionEl.textContent = option;
           inputElement.appendChild(optionEl);
         });
-      }
-      // Add new input types
-      else if (field.type === 'date') {
-        inputElement = document.createElement('input');
-        inputElement.type = 'date';
-      } else if (field.type === 'datetime-local') {
-        inputElement = document.createElement('input');
-        inputElement.type = 'datetime-local';
-      } else if (field.type === 'url') {
-        inputElement = document.createElement('input');
-        inputElement.type = 'url';
-      } else if (field.type === 'email') {
-        inputElement = document.createElement('input');
-        inputElement.type = 'email';
-      } else if (field.type === 'tel') {
-        inputElement = document.createElement('input');
-        inputElement.type = 'tel';
-      } else if (field.type === 'number') {
-        inputElement = document.createElement('input');
-        inputElement.type = 'number';
-      }
-      // New: Geo type
-      else if (field.type === 'geo') {
-        inputElement = document.createElement('div');
-        inputElement.innerHTML = `
-          <input type="number" id="schema-${field.name}-latitude" name="${field.name}-latitude" placeholder="Latitude" class="schema-input" ${field.required ? 'required' : ''}>
-          <input type="number" id="schema-${field.name}-longitude" name="${field.name}-longitude" placeholder="Longitude" class="schema-input" ${field.required ? 'required' : ''}>
-        `;
-        inputElement.className = 'geo-input-container';
-        fieldsContainer.appendChild(fieldGroup);
-        continue; // Skip the rest of the loop
-      }
-      // New: Aggregate Rating
-      else if (field.type === 'aggregateRating') {
-        inputElement = document.createElement('div');
-        inputElement.innerHTML = `
-          <input type="number" id="schema-${field.name}-ratingValue" name="${field.name}-ratingValue" placeholder="Rating Value" class="schema-input" ${field.required ? 'required' : ''}>
-          <input type="number" id="schema-${field.name}-ratingCount" name="${field.name}-ratingCount" placeholder="Rating Count" class="schema-input" class="schema-input" ${field.required ? 'required' : ''}>
-        `;
-        inputElement.className = 'aggregate-rating-input-container';
-        fieldsContainer.appendChild(fieldGroup);
-        continue; // Skip the rest of the loop
-      }
-      // New: Review
-      else if (field.type === 'review') {
-        inputElement = document.createElement('div');
-        inputElement.innerHTML = `
-          <textarea id="schema-${field.name}-reviewBody" name="${field.name}-reviewBody" placeholder="Review Body" class="schema-input" ${field.required ? 'required' : ''}></textarea>
-          <input type="text" id="schema-${field.name}-reviewAuthor" name="${field.name}-reviewAuthor" placeholder="Review Author" class="schema-input" ${field.required ? 'required' : ''}>
-          <input type="date" id="schema-${field.name}-reviewDate" name="${field.name}-reviewDate" placeholder="Review Date" class="schema-input" ${field.required ? 'required' : ''}>
-          <input type="number" id="schema-${field.name}-reviewRating" name="${field.name}-reviewRating" placeholder="Review Rating" class="schema-input" ${field.required ? 'required' : ''}>
-        `;
-        inputElement.className = 'review-input-container';
-        fieldsContainer.appendChild(fieldGroup);
-        continue; // Skip the rest of the loop
-      }
-      // New: Breadcrumb
-      else if (field.type === 'breadcrumb') {
-        inputElement = document.createElement('div');
-        inputElement.innerHTML = `
-          <textarea id="schema-${field.name}-items" name="${field.name}-items" placeholder="Enter breadcrumb items as JSON array. Example: [{&quot;@type&quot;: &quot;ListItem&quot;, &quot;position&quot;: 1, &quot;name&quot;: &quot;Home&quot;, &quot;item&quot;: &quot;https://example.com&quot;}]" class="schema-input" ${field.required ? 'required' : ''}></textarea>
-        `;
-        inputElement.className = 'breadcrumb-input-container';
-        fieldsContainer.appendChild(fieldGroup);
-        continue; // Skip the rest of the loop
-      }
-      else {
+      } else {
         inputElement = document.createElement('input');
         inputElement.type = field.type;
       }
-
+      
       inputElement.id = 'schema-' + field.name;
       inputElement.name = field.name;
       inputElement.required = field.required;
       inputElement.className = 'schema-input';
-
+      
       fieldGroup.appendChild(inputElement);
-
-      // Add description for the field
-      if (field.description) {
-        const descriptionElement = document.createElement('div');
-        descriptionElement.className = 'field-description';
-        descriptionElement.textContent = field.description;
-        fieldGroup.appendChild(descriptionElement);
-      }
-
       fieldsContainer.appendChild(fieldGroup);
     });
   }
-
+  
   // Generate schema based on form inputs
   generateBtn.addEventListener('click', () => {
     const selectedType = schemaType.value;
     const fields = schemaFields[selectedType];
     const schemaData = {};
     let isValid = true;
-
+    
     // Collect form data
     fields.forEach(field => {
       const inputEl = document.getElementById('schema-' + field.name);
@@ -1097,76 +993,25 @@ function setupSchemaGenerator() {
                 answer: answer
               });
             }
-          }
-          // Handle new input types
-          else if (field.type === 'geo') {
-            const latitude = document.getElementById(`schema-${field.name}-latitude`).value;
-            const longitude = document.getElementById(`schema-${field.name}-longitude`).value;
-            if (latitude && longitude) {
-              schemaData[field.name] = {
-                "@type": "GeoCoordinates",
-                "latitude": parseFloat(latitude),
-                "longitude": parseFloat(longitude)
-              };
-            }
-          }
-          else if (field.type === 'aggregateRating') {
-            const ratingValue = document.getElementById(`schema-${field.name}-ratingValue`).value;
-            const ratingCount = document.getElementById(`schema-${field.name}-ratingCount`).value;
-            if (ratingValue && ratingCount) {
-              schemaData[field.name] = {
-                "@type": "AggregateRating",
-                "ratingValue": parseFloat(ratingValue),
-                "ratingCount": parseInt(ratingCount)
-              };
-            }
-          }
-          else if (field.type === 'review') {
-            const reviewBody = document.getElementById(`schema-${field.name}-reviewBody`).value;
-            const reviewAuthor = document.getElementById(`schema-${field.name}-reviewAuthor`).value;
-            const reviewDate = document.getElementById(`schema-${field.name}-reviewDate`).value;
-            const reviewRating = document.getElementById(`schema-${field.name}-reviewRating`).value;
-            if (reviewBody) {
-              schemaData[field.name] = {
-                "@type": "Review",
-                "reviewBody": reviewBody,
-                "author": { "@type": "Person", "name": reviewAuthor },
-                "datePublished": reviewDate,
-                "reviewRating": { "@type": "Rating", "ratingValue": parseFloat(reviewRating) }
-              };
-            }
-          }
-          else if (field.type === 'breadcrumb') {
-            try {
-              const items = JSON.parse(document.getElementById(`schema-${field.name}-items`).value);
-              schemaData[field.name] = {
-                "@type": "BreadcrumbList",
-                "itemListElement": items
-              };
-            } catch (error) {
-              alert("Invalid Breadcrumb JSON");
-              return;
-            }
-          }
-          else if (!field.name.startsWith('answer')) {
+          } else if (!field.name.startsWith('answer')) {
             // Skip answer fields as they're handled with questions
             schemaData[field.name] = inputEl.value;
           }
         }
       }
     });
-
+    
     if (!isValid) {
       alert('Please fill in all required fields marked with *');
       return;
     }
-
+    
     // Generate schema JSON
     const schema = generateSchemaJSON(selectedType, schemaData);
-
+    
     // Display the generated schema
     schemaOutput.textContent = schema;
-
+    
     // Update schema info
     document.getElementById('schema-info').innerHTML = `
       <p>Your ${selectedType} schema has been generated successfully.</p>
@@ -1174,7 +1019,7 @@ function setupSchemaGenerator() {
       <p>You can test your schema with <a href="https://search.google.com/test/rich-results" target="_blank">Google's Rich Results Test</a>.</p>
     `;
   });
-
+  
   // Copy to clipboard functionality
   copyBtn.addEventListener('click', () => {
     navigator.clipboard.writeText(schemaOutput.textContent)
@@ -1189,13 +1034,13 @@ function setupSchemaGenerator() {
         alert('Failed to copy to clipboard');
       });
   });
-
+  
   function generateSchemaJSON(type, data) {
     let schemaObj = {
       "@context": "https://schema.org",
       "@type": type
     };
-
+    
     switch (type) {
       case 'LocalBusiness':
         schemaObj = {
@@ -1212,15 +1057,12 @@ function setupSchemaGenerator() {
             "addressCountry": data.country
           }
         };
-
+        
         if (data.telephone) schemaObj.telephone = data.telephone;
         if (data.priceRange) schemaObj.priceRange = data.priceRange;
         if (data.image) schemaObj.image = data.image;
-        if (data.openingHours) schemaObj.openingHours = data.openingHours;
-        if (data.geo) schemaObj.geo = data.geo;
-        if (data.aggregateRating) schemaObj.aggregateRating = data.aggregateRating;
         break;
-
+        
       case 'Organization':
         schemaObj = {
           ...schemaObj,
@@ -1228,7 +1070,7 @@ function setupSchemaGenerator() {
           "description": data.description,
           "url": data.url
         };
-
+        
         if (data.logo) schemaObj.logo = data.logo;
         if (data.contactPoint) {
           schemaObj.contactPoint = {
@@ -1238,17 +1080,14 @@ function setupSchemaGenerator() {
           };
         }
         if (data.email) schemaObj.email = data.email;
-        if (data.sameAs) {
-          schemaObj.sameAs = data.sameAs.split(',').map(url => url.trim());
-        }
         break;
-
+        
       case 'Person':
         schemaObj = {
           ...schemaObj,
           "name": data.name
         };
-
+        
         if (data.jobTitle) schemaObj.jobTitle = data.jobTitle;
         if (data.worksFor) {
           schemaObj.worksFor = {
@@ -1259,11 +1098,8 @@ function setupSchemaGenerator() {
         if (data.url) schemaObj.url = data.url;
         if (data.image) schemaObj.image = data.image;
         if (data.description) schemaObj.description = data.description;
-        if (data.sameAs) {
-          schemaObj.sameAs = data.sameAs.split(',').map(url => url.trim());
-        }
         break;
-
+        
       case 'Product':
         schemaObj = {
           ...schemaObj,
@@ -1274,21 +1110,22 @@ function setupSchemaGenerator() {
             "name": data.brand
           }
         };
-
+        
         if (data.image) schemaObj.image = data.image;
         if (data.offers) {
           schemaObj.offers = {
             "@type": "Offer",
             "price": data.offers,
-            "priceCurrency": "USD",
-            "availability": data.availability ? "https://schema.org/" + data.availability : undefined
+            "priceCurrency": "USD"
           };
+          
+          if (data.availability) {
+            schemaObj.offers.availability = "https://schema.org/" + data.availability;
+          }
         }
         if (data.sku) schemaObj.sku = data.sku;
-        if (data.aggregateRating) schemaObj.aggregateRating = data.aggregateRating;
-        if (data.review) schemaObj.review = data.review;
         break;
-
+        
       case 'Event':
         schemaObj = {
           ...schemaObj,
@@ -1306,7 +1143,7 @@ function setupSchemaGenerator() {
             }
           }
         };
-
+        
         if (data.image) schemaObj.image = data.image;
         if (data.offers) {
           schemaObj.offers = {
@@ -1315,9 +1152,8 @@ function setupSchemaGenerator() {
             "priceCurrency": "USD"
           };
         }
-        if (data.performer) schemaObj.performer = data.performer;
         break;
-
+        
       case 'Article':
         schemaObj = {
           ...schemaObj,
@@ -1333,7 +1169,7 @@ function setupSchemaGenerator() {
             "name": data.publisher
           }
         };
-
+        
         if (data.image) schemaObj.image = data.image;
         if (data.dateModified) schemaObj.dateModified = data.dateModified;
         if (data.publisherLogo) {
@@ -1342,9 +1178,8 @@ function setupSchemaGenerator() {
             "url": data.publisherLogo
           };
         }
-        if (data.articleSection) schemaObj.articleSection = data.articleSection;
         break;
-
+        
       case 'FAQ':
         schemaObj = {
           "@context": "https://schema.org",
@@ -1359,33 +1194,12 @@ function setupSchemaGenerator() {
           }))
         };
         break;
-      // Add more schema types here
-      case 'WebSite':
-        schemaObj = {
-          ...schemaObj,
-          "name": data.name,
-          "url": data.url,
-          "description": data.description
-        };
-        if (data.potentialAction) {
-          schemaObj.potentialAction = {
-            "@type": "SearchAction",
-            "target": data.potentialAction,
-            "query-input": "required name=query"
-          };
-        }
-        break;
-      case 'BreadcrumbList':
-        schemaObj = {
-          "@type": "BreadcrumbList",
-          "itemListElement": data.itemListElement
-        };
-        break;
     }
-
+    
     return `<script type="application/ld+json">\n${JSON.stringify(schemaObj, null, 2)}\n</script>`;
   }
 }
+
 // Keyword Database Tool
 function setupKeywordDatabase() {
   const searchBtn = document.getElementById('search-keyword-btn');
@@ -2716,7 +2530,13 @@ function setupThemeSwitcher() {
     themeSwitcher.appendChild(button);
   });
   
-  document.body.appendChild(themeSwitcher);
+  // Add theme switcher to API manager panel if it exists, otherwise add to body
+  const apiManagerPanel = document.querySelector('.api-manager-panel');
+  if (apiManagerPanel) {
+    apiManagerPanel.appendChild(themeSwitcher);
+  } else {
+    document.body.appendChild(themeSwitcher);
+  }
   
   // Load saved theme preference
   const savedTheme = localStorage.getItem('selectedTheme');
