@@ -1,58 +1,81 @@
-// Tool navigation
+// Configuration
+import config from './config.js';
+
+// Initialize app
 document.addEventListener('DOMContentLoaded', () => {
+  // Removed theme initialization
+  
+  initNavigation();
+  initHTMLAnalyzer();
+  initKeywordDensity();
+  initTFIDF();
+  initReadability();
+  initMetaTags();
+  initSchemaGenerator();
+  initKeywordDatabase();
+  initBacklinkChecker();
+  initCompetitorGap();
+  initSentimentAnalysis();
+  initContentEditor();
+  initAIChatbot();
+});
+
+// Removed theme functionality
+
+// Tools navigation
+function initNavigation() {
   const navButtons = document.querySelectorAll('.nav-btn');
   const toolContainers = document.querySelectorAll('.tool-container');
   
+  if (!navButtons || navButtons.length === 0 || !toolContainers || toolContainers.length === 0) return;
+  
   navButtons.forEach(button => {
     button.addEventListener('click', () => {
-      const targetTool = button.dataset.tool;
+      const tool = button.getAttribute('data-tool');
       
-      // Update active button
+      // Remove active class from all buttons and containers
       navButtons.forEach(btn => btn.classList.remove('active'));
-      button.classList.add('active');
+      toolContainers.forEach(container => container.classList.remove('active'));
       
-      // Show selected tool container
-      toolContainers.forEach(container => {
-        container.classList.remove('active');
-        if (container.id === targetTool) {
-          container.classList.add('active');
-        }
-      });
+      // Add active class to clicked button and corresponding container
+      button.classList.add('active');
+      const container = document.getElementById(tool);
+      if (container) {
+        container.classList.add('active');
+        
+        // Scroll to the tool container with a smooth animation
+        container.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     });
   });
-  
-  // Set up the tools
-  setupHtmlAnalyzer();
-  setupKeywordDensity();
-  setupTfIdf();
-  setupReadability();
-  setupMetaTags();
-  setupSchemaGenerator();
-  setupKeywordDatabase(); 
-  setupSentimentAnalysis();
-  setupContentEditor(); 
-  setupChatbot();
-  setupThemeSwitcher();
-  setupApiManagement();
-});
+}
 
-// HTML Analyzer Tool
-function setupHtmlAnalyzer() {
+// HTML Analyzer
+function initHTMLAnalyzer() {
   const analyzeBtn = document.querySelector('#html-analyzer .analyze-btn');
-  const textArea = document.querySelector('#html-analyzer textarea');
+  const textarea = document.querySelector('#html-analyzer textarea');
+  let htmlStructureChart = null;
+  
+  if (!analyzeBtn || !textarea) return;
+  
+  // Create additional visualization containers
+  const resultsContainer = document.querySelector('#html-analyzer .results');
+  if (resultsContainer) {
+    const chartContainer = document.createElement('div');
+    chartContainer.className = 'chart-container';
+    chartContainer.innerHTML = '<canvas id="htmlStructureChart"></canvas>';
+    
+    resultsContainer.appendChild(chartContainer);
+  }
   
   analyzeBtn.addEventListener('click', () => {
-    const html = textArea.value.trim();
-    if (!html) {
-      alert('Please enter some HTML to analyze');
-      return;
-    }
+    const html = textarea.value;
+    if (!html) return;
     
-    // Analyze HTML
+    // Structure analysis
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
     
-    // Structure analysis
     const headings = {
       h1: doc.querySelectorAll('h1').length,
       h2: doc.querySelectorAll('h2').length,
@@ -62,717 +85,905 @@ function setupHtmlAnalyzer() {
       h6: doc.querySelectorAll('h6').length
     };
     
-    const images = doc.querySelectorAll('img');
-    const links = doc.querySelectorAll('a');
-    const paragraphs = doc.querySelectorAll('p');
-    const lists = doc.querySelectorAll('ul, ol');
-    const tables = doc.querySelectorAll('table');
-    const internalLinks = Array.from(links).filter(link => {
-      const href = link.getAttribute('href');
-      return href && !href.startsWith('http') && !href.startsWith('//');
-    }).length;
-    const externalLinks = links.length - internalLinks;
+    const links = doc.querySelectorAll('a').length;
+    const internalLinks = Array.from(doc.querySelectorAll('a')).filter(a => 
+      !a.href.startsWith('http') || a.href.includes(window.location.hostname)
+    ).length;
+    const externalLinks = links - internalLinks;
     
-    // SEO checks
-    const seoIssues = [];
-    const recommendations = [];
+    const images = doc.querySelectorAll('img').length;
+    const paragraphs = doc.querySelectorAll('p').length;
+    const lists = doc.querySelectorAll('ul, ol').length;
+    const tables = doc.querySelectorAll('table').length;
+    const buttons = doc.querySelectorAll('button, input[type="button"], input[type="submit"]').length;
+    const forms = doc.querySelectorAll('form').length;
     
-    // Check title
-    const title = doc.querySelector('title');
-    if (!title) {
-      seoIssues.push('Missing title tag');
-      recommendations.push('Add a title tag with a descriptive page title');
-    } else if (title.textContent.length < 10) {
-      seoIssues.push('Title tag is too short');
-      recommendations.push('Make your title more descriptive (30-60 characters)');
-    } else if (title.textContent.length > 60) {
-      seoIssues.push('Title tag is too long');
-      recommendations.push('Keep your title under 60 characters to prevent truncation in search results');
+    // SEO issues
+    const issues = [];
+    
+    if (!doc.querySelector('title')) {
+      issues.push('Missing title tag');
     }
     
-    // Check meta description
-    const metaDesc = doc.querySelector('meta[name="description"]');
-    if (!metaDesc) {
-      seoIssues.push('Missing meta description');
-      recommendations.push('Add a meta description tag with a concise page summary');
-    } else if (metaDesc.getAttribute('content').length < 50) {
-      seoIssues.push('Meta description is too short');
-      recommendations.push('Write a more descriptive meta description (50-160 characters)');
-    } else if (metaDesc.getAttribute('content').length > 160) {
-      seoIssues.push('Meta description is too long');
-      recommendations.push('Keep your meta description under 160 characters');
+    if (!doc.querySelector('meta[name="description"]')) {
+      issues.push('Missing meta description');
     }
     
-    // Check heading structure
     if (headings.h1 === 0) {
-      seoIssues.push('No H1 heading found');
-      recommendations.push('Add an H1 heading as the main title of your page');
-    } else if (headings.h1 > 1) {
-      seoIssues.push(`Multiple H1 headings found (${headings.h1})`);
-      recommendations.push('Use only one H1 heading per page');
+      issues.push('No H1 heading found');
+    }
+    
+    if (headings.h1 > 1) {
+      issues.push('Multiple H1 headings found (recommended: only one H1)');
+    }
+    
+    const imgWithoutAlt = doc.querySelectorAll('img:not([alt])').length;
+    if (imgWithoutAlt > 0) {
+      issues.push(`${imgWithoutAlt} image(s) missing alt text`);
     }
     
     // Check heading hierarchy
-    const headingElements = doc.querySelectorAll('h1, h2, h3, h4, h5, h6');
-    let prevLevel = 0;
-    let hasHierarchyIssues = false;
+    const headingElements = Array.from(doc.querySelectorAll('h1, h2, h3, h4, h5, h6'));
+    let previousLevel = 0;
+    let hierarchyIssues = false;
     
-    headingElements.forEach(el => {
-      const level = parseInt(el.tagName.substring(1));
-      if (level > prevLevel + 1 && prevLevel > 0) {
-        hasHierarchyIssues = true;
+    headingElements.forEach(heading => {
+      const level = parseInt(heading.tagName.substring(1));
+      if (previousLevel > 0 && level - previousLevel > 1) {
+        hierarchyIssues = true;
       }
-      prevLevel = level;
+      previousLevel = level;
     });
     
-    if (hasHierarchyIssues) {
-      seoIssues.push('Improper heading hierarchy');
-      recommendations.push('Ensure heading levels are sequential (H1 → H2 → H3, not H1 → H3)');
+    if (hierarchyIssues) {
+      issues.push('Heading hierarchy is not sequential (e.g., H1 followed by H3)');
     }
     
-    // Check images for alt text
-    let imagesWithoutAlt = 0;
-    images.forEach(img => {
-      if (!img.hasAttribute('alt') || img.getAttribute('alt').trim() === '') {
-        imagesWithoutAlt++;
+    // Recommendations
+    const recommendations = [];
+    
+    if (paragraphs < 3) {
+      recommendations.push('Add more content to improve page value');
+    }
+    
+    if (links < 2) {
+      recommendations.push('Consider adding more internal or external links');
+    }
+    
+    if (headings.h2 === 0 && paragraphs > 2) {
+      recommendations.push('Consider adding H2 headings to structure content');
+    }
+    
+    if (images > 0 && imgWithoutAlt > 0) {
+      recommendations.push('Add alt text to all images for better accessibility');
+    }
+    
+    // Update UI with enhanced visualizations
+    const structureResultsEl = document.getElementById('structure-results');
+    const seoIssuesEl = document.getElementById('seo-issues');
+    const recommendationsEl = document.getElementById('recommendations');
+    
+    if (structureResultsEl) {
+      structureResultsEl.innerHTML = `
+        <div class="stat-visualization">
+          <div class="stat-metric">
+            <h4>Paragraphs</h4>
+            <div class="stat-value">${paragraphs}</div>
+          </div>
+          <div class="stat-metric">
+            <h4>Links</h4>
+            <div class="stat-value">${links}</div>
+          </div>
+          <div class="stat-metric">
+            <h4>Images</h4>
+            <div class="stat-value">${images}</div>
+          </div>
+          <div class="stat-metric">
+            <h4>Headings</h4>
+            <div class="stat-value">${headings.h1 + headings.h2 + headings.h3 + headings.h4 + headings.h5 + headings.h6}</div>
+          </div>
+        </div>
+        <ul>
+          <li>Headings: H1 (${headings.h1}), H2 (${headings.h2}), H3 (${headings.h3}), H4+ (${headings.h4 + headings.h5 + headings.h6})</li>
+          <li>Links: ${links} (Internal: ${internalLinks}, External: ${externalLinks})</li>
+          <li>Images: ${images} (With alt: ${images - imgWithoutAlt}, Without alt: ${imgWithoutAlt})</li>
+          <li>Other elements: Lists (${lists}), Tables (${tables}), Buttons (${buttons}), Forms (${forms})</li>
+        </ul>
+      `;
+    }
+    
+    if (seoIssuesEl) {
+      seoIssuesEl.innerHTML = issues.length > 0 ?
+        `<ul>${issues.map(issue => `<li>${issue}</li>`).join('')}</ul>` :
+        '<p>No major SEO issues found!</p>';
+    }
+    
+    if (recommendationsEl) {
+      recommendationsEl.innerHTML = recommendations.length > 0 ?
+        `<ul>${recommendations.map(rec => `<li>${rec}</li>`).join('')}</ul>` :
+        '<p>Your HTML structure looks good!</p>';
+    }
+    
+    // Create/update structure chart
+    const chartCanvas = document.getElementById('htmlStructureChart');
+    if (chartCanvas) {
+      const ctx = chartCanvas.getContext('2d');
+      
+      if (htmlStructureChart) {
+        htmlStructureChart.destroy();
       }
-    });
-    
-    if (imagesWithoutAlt > 0) {
-      seoIssues.push(`${imagesWithoutAlt} images missing alt text`);
-      recommendations.push('Add descriptive alt text to all images');
+      
+      const theme = localStorage.getItem('themePref') || config.theme.defaultTheme;
+      const chartColors = config.chartColors[theme] || config.chartColors.light;
+      
+      htmlStructureChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: ['Paragraphs', 'Links', 'Images', 'Headings', 'Lists', 'Tables', 'Buttons', 'Forms'],
+          datasets: [{
+            data: [paragraphs, links, images, headings.h1 + headings.h2 + headings.h3 + headings.h4 + headings.h5 + headings.h6, lists, tables, buttons, forms],
+            backgroundColor: [
+              chartColors.backgroundColor,
+              chartColors.borderColor,
+              chartColors.accentColor,
+              chartColors.secondAccent,
+              chartColors.thirdAccent,
+              'rgba(153, 102, 255, 0.6)',
+              'rgba(255, 159, 64, 0.6)',
+              'rgba(201, 203, 207, 0.6)'
+            ],
+            borderColor: [
+              chartColors.borderColor,
+              chartColors.borderColor.replace('0.2', '1'),
+              chartColors.accentColor.replace('0.6', '1'),
+              chartColors.secondAccent.replace('0.6', '1'),
+              chartColors.thirdAccent.replace('0.6', '1'),
+              'rgba(153, 102, 255, 1)',
+              'rgba(255, 159, 64, 1)',
+              'rgba(201, 203, 207, 1)'
+            ],
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right'
+            },
+            title: {
+              display: true,
+              text: 'HTML Structure Composition'
+            }
+          }
+        }
+      });
     }
-    
-    // Check for canonical tag
-    const canonical = doc.querySelector('link[rel="canonical"]');
-    if (!canonical) {
-      seoIssues.push('Missing canonical tag');
-      recommendations.push('Add a canonical tag to prevent duplicate content issues');
-    }
-    
-    // Check for viewport meta tag (mobile-friendly)
-    const viewport = doc.querySelector('meta[name="viewport"]');
-    if (!viewport) {
-      seoIssues.push('Missing viewport meta tag');
-      recommendations.push('Add a viewport meta tag for better mobile experience');
-    }
-    
-    // Display results
-    document.getElementById('structure-results').innerHTML = `
-      <div class="result-item">
-        <strong>Headings:</strong>
-        <div>H1: ${headings.h1}, H2: ${headings.h2}, H3: ${headings.h3}, H4: ${headings.h4}, H5: ${headings.h5}, H6: ${headings.h6}</div>
-      </div>
-      <div class="result-item">
-        <strong>Images:</strong> ${images.length}
-      </div>
-      <div class="result-item">
-        <strong>Links:</strong> ${links.length} (Internal: ${internalLinks}, External: ${externalLinks})
-      </div>
-      <div class="result-item">
-        <strong>Paragraphs:</strong> ${paragraphs.length}
-      </div>
-      <div class="result-item">
-        <strong>Lists:</strong> ${lists.length}
-      </div>
-      <div class="result-item">
-        <strong>Tables:</strong> ${tables.length}
-      </div>
-    `;
-    
-    document.getElementById('seo-issues').innerHTML = seoIssues.length > 0 ? 
-      seoIssues.map(issue => `<div class="result-item warning">❌ ${issue}</div>`).join('') :
-      '<div class="result-item success">✓ No major SEO issues found</div>';
-    
-    document.getElementById('recommendations').innerHTML = recommendations.length > 0 ?
-      recommendations.map(rec => `<div class="result-item">→ ${rec}</div>`).join('') :
-      '<div class="result-item success">✓ Your HTML structure looks good!</div>';
   });
 }
 
-// Keyword Density Tool
-function setupKeywordDensity() {
+// Keyword Density Analyzer
+function initKeywordDensity() {
   const analyzeBtn = document.querySelector('#keyword-density .analyze-btn');
-  const textArea = document.querySelector('#keyword-density textarea');
+  const textarea = document.querySelector('#keyword-density textarea');
   let keywordChart = null;
+  let keywordPieChart = null;
+  
+  if (!analyzeBtn || !textarea) return;
+  
+  // Create additional chart containers
+  const resultsContainer = document.querySelector('#keyword-density .results');
+  if (resultsContainer) {
+    const pieChartContainer = document.createElement('div');
+    pieChartContainer.className = 'pie-chart-container';
+    pieChartContainer.innerHTML = '<canvas id="keywordPieChart"></canvas>';
+    
+    const bubbleContainer = document.createElement('div');
+    bubbleContainer.className = 'keyword-bubble-chart';
+    bubbleContainer.id = 'keywordBubbles';
+    
+    resultsContainer.appendChild(pieChartContainer);
+    resultsContainer.appendChild(bubbleContainer);
+  }
   
   analyzeBtn.addEventListener('click', () => {
-    const content = textArea.value.trim();
-    if (!content) {
-      alert('Please enter some content to analyze');
-      return;
-    }
+    const content = textarea.value;
+    if (!content) return;
     
-    // Extract text content if HTML is provided
-    let textContent = content;
-    if (content.includes('<') && content.includes('>')) {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(content, 'text/html');
-      textContent = doc.body.textContent;
-    }
-    
-    // Define common stopwords to exclude
-    const stopwords = new Set([
-      'a', 'an', 'the', 'and', 'or', 'but', 'is', 'are', 'was', 'were', 
-      'be', 'have', 'has', 'had', 'do', 'does', 'did', 'to', 'at', 'in',
-      'on', 'for', 'with', 'by', 'about', 'as', 'of', 'from', 'this', 'that',
-      'these', 'those', 'it', 'its', 'they', 'them', 'their', 'we', 'our', 'us',
-      'will', 'would', 'should', 'can', 'could', 'may', 'might'
-    ]);
-    
-    // Process words
-    const words = textContent.toLowerCase()
-      .replace(/[^\w\s-]/g, '') // Remove punctuation except hyphens
+    // Process text
+    const words = content.toLowerCase()
+      .replace(/[^\w\s]/g, '')
       .split(/\s+/)
-      .filter(word => word.length > 2 && !stopwords.has(word));
+      .filter(word => word.length > 3);
     
-    // Process phrases (2-3 word combinations)
-    const phrases = [];
-    for (let i = 0; i < words.length - 1; i++) {
-      if (words[i] && words[i+1]) {
-        phrases.push(words[i] + ' ' + words[i+1]); // 2-word phrase
-      }
-      
-      if (i < words.length - 2 && words[i+2]) {
-        phrases.push(words[i] + ' ' + words[i+1] + ' ' + words[i+2]); // 3-word phrase
-      }
-    }
+    const totalWords = words.length;
     
-    const wordCount = words.length;
-    const wordFreq = {};
-    const phraseFreq = {};
-    
-    // Count word frequencies
+    // Count word frequency
+    const wordCounts = {};
     words.forEach(word => {
-      wordFreq[word] = (wordFreq[word] || 0) + 1;
+      wordCounts[word] = (wordCounts[word] || 0) + 1;
     });
     
-    // Count phrase frequencies
-    phrases.forEach(phrase => {
-      phraseFreq[phrase] = (phraseFreq[phrase] || 0) + 1;
-    });
-    
-    // Sort words by frequency
-    const sortedWords = Object.entries(wordFreq)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 15);
-    
-    // Sort phrases by frequency (only include phrases that appear more than once)
-    const sortedPhrases = Object.entries(phraseFreq)
-      .filter(([_, count]) => count > 1)
+    // Sort by frequency
+    const sortedWords = Object.entries(wordCounts)
       .sort((a, b) => b[1] - a[1])
       .slice(0, 10);
     
     // Calculate percentages
-    const keywordData = sortedWords.map(([word, count]) => {
-      const percentage = (count / wordCount * 100).toFixed(2);
-      return { word, count, percentage };
-    });
+    const keywordData = sortedWords.map(([word, count]) => ({
+      word,
+      count,
+      percentage: ((count / totalWords) * 100).toFixed(2)
+    }));
     
-    const phraseData = sortedPhrases.map(([phrase, count]) => {
-      const percentage = (count / (wordCount - phrase.split(' ').length + 1) * 100).toFixed(2);
-      return { phrase, count, percentage };
-    });
-    
-    // Display results
-    let resultsHTML = '<h4>Single Keywords</h4>';
-    
-    resultsHTML += keywordData
-      .map(({ word, count, percentage }) => 
-        `<div class="result-item">
-          <div><strong>${word}</strong> (${count} occurrences, ${percentage}%)</div>
-          <div class="progress-bar">
-            <div class="progress-fill" style="width: ${percentage}%"></div>
+    // Update UI
+    const keywordResultsEl = document.getElementById('keyword-results');
+    if (keywordResultsEl) {
+      keywordResultsEl.innerHTML = `
+        <div class="stat-visualization">
+          <div class="stat-metric">
+            <h4>Total Words</h4>
+            <div class="stat-value">${totalWords}</div>
           </div>
-        </div>`
-      ).join('');
-    
-    if (phraseData.length > 0) {
-      resultsHTML += '<h4 style="margin-top: 1.5rem;">Keyword Phrases</h4>';
-      
-      resultsHTML += phraseData
-        .map(({ phrase, count, percentage }) => 
-          `<div class="result-item">
-            <div><strong>${phrase}</strong> (${count} occurrences, ${percentage}%)</div>
-            <div class="progress-bar">
-              <div class="progress-fill" style="width: ${percentage}%"></div>
-            </div>
-          </div>`
-        ).join('');
-    }
-    
-    document.getElementById('keyword-results').innerHTML = resultsHTML;
-    
-    // Create chart
-    const chartCanvas = document.getElementById('keywordChart');
-    const ctx = chartCanvas.getContext('2d');
-    
-    // Destroy previous chart if it exists
-    if (keywordChart) {
-      keywordChart.destroy();
-    }
-    
-    keywordChart = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: keywordData.slice(0, 10).map(d => d.word),
-        datasets: [{
-          label: 'Keyword Frequency',
-          data: keywordData.slice(0, 10).map(d => d.count),
-          backgroundColor: 'rgba(37, 117, 252, 0.7)'
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          y: {
-            beginAtZero: true,
-            title: {
-              display: true,
-              text: 'Occurrences'
-            }
-          },
-          x: {
-            title: {
-              display: true,
-              text: 'Keywords'
-            }
-          }
-        }
-      }
-    });
-  });
-}
-
-// TF-IDF Analysis Tool
-function setupTfIdf() {
-  const analyzeBtn = document.querySelector('#tf-idf .analyze-btn');
-  const textAreas = document.querySelectorAll('#tf-idf textarea');
-  
-  analyzeBtn.addEventListener('click', () => {
-    const mainContent = textAreas[0].value.trim();
-    const competitorContent = textAreas[1].value.trim();
-    
-    if (!mainContent) {
-      alert('Please enter your content to analyze');
-      return;
-    }
-    
-    // Extract text if HTML is provided
-    const extractText = (content) => {
-      if (content.includes('<') && content.includes('>')) {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(content, 'text/html');
-        return doc.body.textContent;
-      }
-      return content;
-    };
-    
-    const mainText = extractText(mainContent);
-    const competitorText = competitorContent ? extractText(competitorContent) : '';
-    
-    // Define common stopwords to exclude
-    const stopwords = new Set([
-      'a', 'an', 'the', 'and', 'or', 'but', 'is', 'are', 'was', 'were', 
-      'be', 'have', 'has', 'had', 'do', 'does', 'did', 'to', 'at', 'in',
-      'on', 'for', 'with', 'by', 'about', 'as', 'of', 'from', 'this', 'that',
-      'these', 'those', 'it', 'its', 'they', 'them', 'their', 'we', 'our', 'us',
-      'will', 'would', 'should', 'can', 'could', 'may', 'might'
-    ]);
-    
-    // Process text into word frequencies
-    const getWordFrequency = (text) => {
-      const words = text.toLowerCase()
-        .replace(/[^\w\s-]/g, '')
-        .split(/\s+/)
-        .filter(word => word.length > 2 && !stopwords.has(word));
-      
-      const wordFreq = { _totalWords: words.length };
-      
-      words.forEach(word => {
-        wordFreq[word] = (wordFreq[word] || 0) + 1;
-      });
-      
-      return wordFreq;
-    };
-    
-    // Create term frequency function
-    const calculateTF = (term, doc) => {
-      if (!doc[term]) return 0;
-      return doc[term] / doc._totalWords;
-    };
-    
-    // Create inverse document frequency function
-    const calculateIDF = (term, docs) => {
-      // Count docs containing the term
-      let docsWithTerm = 0;
-      docs.forEach(doc => {
-        if (doc[term]) docsWithTerm++;
-      });
-      
-      // If term not found in any docs, return 0
-      if (docsWithTerm === 0) return 0;
-      
-      // Calculate IDF
-      return Math.log(docs.length / docsWithTerm);
-    };
-    
-    // Analyze TF-IDF
-    const mainWords = getWordFrequency(mainText);
-    const docs = [mainWords];
-    
-    if (competitorText) {
-      const competitorWords = getWordFrequency(competitorText);
-      docs.push(competitorWords);
-    }
-    
-    // Calculate TF-IDF scores
-    const tfIdfScores = [];
-    
-    // Process all words from main document
-    Object.keys(mainWords).forEach(word => {
-      // Skip metadata
-      if (word === '_totalWords') return;
-      
-      // Calculate term frequency
-      const tf = calculateTF(word, mainWords);
-      
-      // Calculate inverse document frequency
-      const idf = calculateIDF(word, docs);
-      
-      // Calculate TF-IDF
-      const tfIdf = tf * idf;
-      
-      tfIdfScores.push({
-        word,
-        tf,
-        idf,
-        tfIdf,
-        count: mainWords[word]
-      });
-    });
-    
-    // Sort by TF-IDF score
-    tfIdfScores.sort((a, b) => b.tfIdf - a.tfIdf);
-    
-    // Display results
-    const resultsElement = document.getElementById('tf-idf-results');
-    
-    // Create a table with the results
-    let html = `
-      <table class="tf-idf-table">
-        <thead>
+          <div class="stat-metric">
+            <h4>Unique Words</h4>
+            <div class="stat-value">${Object.keys(wordCounts).length}</div>
+          </div>
+          <div class="stat-metric">
+            <h4>Top Keyword</h4>
+            <div class="stat-value">${keywordData[0]?.word || 'N/A'}</div>
+          </div>
+          <div class="stat-metric">
+            <h4>Keyword Density</h4>
+            <div class="stat-value">${keywordData[0]?.percentage || '0'}%</div>
+          </div>
+        </div>
+        <table>
           <tr>
             <th>Keyword</th>
-            <th>Occurrences</th>
-            <th>TF</th>
-            <th>IDF</th>
-            <th>TF-IDF Score</th>
-            <th>Importance</th>
+            <th>Count</th>
+            <th>Density</th>
           </tr>
-        </thead>
-        <tbody>
-    `;
-    
-    tfIdfScores.slice(0, 20).forEach(({ word, tfIdf, tf, idf, count }) => {
-      const tfFormatted = tf.toFixed(4);
-      const idfFormatted = idf.toFixed(4);
-      const scoreFormatted = tfIdf.toFixed(4);
-      const importance = getImportanceLevel(tfIdf);
-      
-      html += `
-        <tr>
-          <td>${word}</td>
-          <td>${count}</td>
-          <td>${tfFormatted}</td>
-          <td>${idfFormatted}</td>
-          <td>${scoreFormatted}</td>
-          <td>
-            <div class="importance-indicator ${importance.class}">${importance.label}</div>
-          </td>
-        </tr>
+          ${keywordData.map(data => `
+            <tr>
+              <td>${data.word}</td>
+              <td>${data.count}</td>
+              <td>${data.percentage}%</td>
+            </tr>
+          `).join('')}
+        </table>
       `;
-    });
+    }
     
-    html += `
-        </tbody>
-      </table>
-      <div class="note" style="margin-top: 1rem; font-size: 0.9rem; color: #666;">
-        <p>Higher TF-IDF scores indicate more distinctive keywords in your content.</p>
-        <p>TF = Term Frequency, IDF = Inverse Document Frequency, measuring how unique and important a word is.</p>
-      </div>
-    `;
+    // Create/update bar chart
+    const chartCanvas = document.getElementById('keywordChart');
+    if (chartCanvas) {
+      const ctx = chartCanvas.getContext('2d');
+      
+      if (keywordChart) {
+        keywordChart.destroy();
+      }
+      
+      const theme = localStorage.getItem('themePref') || config.theme.defaultTheme;
+      const chartColors = config.chartColors[theme] || config.chartColors.light;
+      
+      keywordChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: keywordData.map(data => data.word),
+          datasets: [{
+            label: 'Keyword Density (%)',
+            data: keywordData.map(data => data.percentage),
+            backgroundColor: chartColors.backgroundColor,
+            borderColor: chartColors.borderColor,
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Percentage (%)'
+              }
+            },
+            x: {
+              title: {
+                display: true,
+                text: 'Keywords'
+              },
+              ticks: {
+                autoSkip: true,
+                maxRotation: 45,
+                minRotation: 45
+              }
+            }
+          }
+        }
+      });
+    }
     
-    resultsElement.innerHTML = html;
+    // Create/update pie chart
+    const pieChartCanvas = document.getElementById('keywordPieChart');
+    if (pieChartCanvas) {
+      const ctx = pieChartCanvas.getContext('2d');
+      
+      if (keywordPieChart) {
+        keywordPieChart.destroy();
+      }
+      
+      const theme = localStorage.getItem('themePref') || config.theme.defaultTheme;
+      const chartColors = config.chartColors[theme] || config.chartColors.light;
+      
+      // Take top 5 keywords and group the rest as "Others"
+      const top5 = keywordData.slice(0, 5);
+      const otherPercentage = keywordData.slice(5).reduce((sum, data) => sum + parseFloat(data.percentage), 0);
+      
+      const pieData = [
+        ...top5.map(data => parseFloat(data.percentage)),
+        otherPercentage
+      ];
+      
+      const pieLabels = [
+        ...top5.map(data => data.word),
+        'Others'
+      ];
+      
+      // Generate a color array
+      const colorArray = [
+        chartColors.backgroundColor,
+        chartColors.accentColor,
+        chartColors.secondAccent,
+        chartColors.thirdAccent,
+        'rgba(153, 102, 255, 0.6)',
+        'rgba(201, 203, 207, 0.6)'
+      ];
+      
+      keywordPieChart = new Chart(ctx, {
+        type: 'pie',
+        data: {
+          labels: pieLabels,
+          datasets: [{
+            data: pieData,
+            backgroundColor: colorArray,
+            borderColor: colorArray.map(color => color.replace('0.6', '1')),
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: {
+              position: 'right'
+            },
+            title: {
+              display: true,
+              text: 'Keyword Distribution'
+            }
+          }
+        }
+      });
+    }
+    
+    // Create keyword bubbles
+    const bubbleContainer = document.getElementById('keywordBubbles');
+    if (bubbleContainer) {
+      bubbleContainer.innerHTML = '';
+      
+      keywordData.forEach(data => {
+        const bubble = document.createElement('span');
+        bubble.className = 'keyword-bubble';
+        bubble.textContent = data.word;
+        bubble.style.fontSize = `${Math.max(0.9, Math.min(2, parseFloat(data.percentage) / 2 + 0.8))}rem`;
+        bubble.style.opacity = `${Math.max(0.5, Math.min(1, parseFloat(data.percentage) / 5 + 0.5))}`;
+        bubbleContainer.appendChild(bubble);
+      });
+    }
+  });
+}
+
+// TF-IDF Analysis
+function initTFIDF() {
+  const analyzeBtn = document.querySelector('#tf-idf .analyze-btn');
+  const mainTextarea = document.querySelector('#tf-idf .multi-input textarea:first-child');
+  const competitorTextarea = document.querySelector('#tf-idf .multi-input textarea:last-child');
+  
+  if (!analyzeBtn || !mainTextarea || !competitorTextarea) return;
+  
+  analyzeBtn.addEventListener('click', () => {
+    const mainContent = mainTextarea.value;
+    const competitorContent = competitorTextarea.value;
+    
+    if (!mainContent) return;
+    
+    // Calculate TF-IDF
+    const mainDoc = processText(mainContent);
+    const competitorDoc = competitorContent ? processText(competitorContent) : null;
+    
+    const tfidfResults = calculateTFIDF(mainDoc, competitorDoc);
+    
+    // Update UI
+    const resultsEl = document.getElementById('tf-idf-results');
+    if (resultsEl) {
+      resultsEl.innerHTML = `
+        <h4>TF-IDF Analysis Results</h4>
+        <table>
+          <tr>
+            <th>Term</th>
+            <th>TF-IDF Score</th>
+            <th>Frequency</th>
+          </tr>
+          ${tfidfResults.map(item => `
+            <tr>
+              <td>${item.term}</td>
+              <td>${item.tfidf.toFixed(4)}</td>
+              <td>${item.frequency}</td>
+            </tr>
+          `).join('')}
+        </table>
+        <p class="note">Higher TF-IDF scores indicate more important terms unique to your content.</p>
+      `;
+    }
   });
   
-  function getImportanceLevel(score) {
-    if (score > 0.01) {
-      return { label: 'High', class: 'high' };
-    } else if (score > 0.005) {
-      return { label: 'Medium', class: 'medium' };
-    } else {
-      return { label: 'Low', class: 'low' };
+  function processText(text) {
+    // Simple text processing
+    const words = text.toLowerCase()
+      .replace(/[^\w\s]/g, '')
+      .split(/\s+/)
+      .filter(word => word.length > 3);
+    
+    const wordCounts = {};
+    words.forEach(word => {
+      wordCounts[word] = (wordCounts[word] || 0) + 1;
+    });
+    
+    return {
+      wordCounts,
+      totalWords: words.length
+    };
+  }
+  
+  function calculateTFIDF(mainDoc, competitorDoc) {
+    const results = [];
+    
+    // Calculate term frequency
+    for (const [term, count] of Object.entries(mainDoc.wordCounts)) {
+      const tf = count / mainDoc.totalWords;
+      
+      // Calculate inverse document frequency
+      let idf = 1; // Default if no competitor doc
+      
+      if (competitorDoc) {
+        const docsWithTerm = (mainDoc.wordCounts[term] ? 1 : 0) + 
+                            (competitorDoc.wordCounts[term] ? 1 : 0);
+        idf = Math.log(2 / docsWithTerm);
+      }
+      
+      const tfidf = tf * idf;
+      
+      results.push({
+        term,
+        tfidf,
+        frequency: count
+      });
     }
+    
+    // Sort by TF-IDF score
+    return results.sort((a, b) => b.tfidf - a.tfidf).slice(0, 20);
   }
 }
 
-// Readability Analysis Tool
-function setupReadability() {
+// Readability Analysis
+function initReadability() {
   const analyzeBtn = document.querySelector('#readability .analyze-btn');
-  const textArea = document.querySelector('#readability textarea');
+  const textarea = document.querySelector('#readability textarea');
   let readabilityChart = null;
+  let readabilityGauge = null;
+  
+  if (!analyzeBtn || !textarea) return;
+  
+  // Create additional visualization containers
+  const resultsContainer = document.querySelector('#readability .results');
+  if (resultsContainer) {
+    const gaugeContainer = document.createElement('div');
+    gaugeContainer.className = 'gauge-chart-container';
+    gaugeContainer.innerHTML = `
+      <h3>Readability Score Gauge</h3>
+      <div class="gauge-container" id="readabilityGauge">
+        <div class="gauge-background">
+          <div class="gauge-fill" id="gaugeFill"></div>
+          <div class="gauge-center"></div>
+          <div class="gauge-value" id="gaugeValue">0</div>
+        </div>
+      </div>
+      <div class="heatmap-legend">
+        <span>Very Difficult</span>
+        <span>Difficult</span>
+        <span>Standard</span>
+        <span>Easy</span>
+        <span>Very Easy</span>
+      </div>
+    `;
+    
+    // Insert gauge before the chart
+    const chartContainer = document.querySelector('#readability .chart-container');
+    if (chartContainer) {
+      resultsContainer.insertBefore(gaugeContainer, chartContainer);
+    }
+  }
   
   analyzeBtn.addEventListener('click', () => {
-    const content = textArea.value.trim();
-    if (!content) {
-      alert('Please enter some content to analyze');
-      return;
-    }
+    const content = textarea.value;
+    if (!content) return;
     
-    // Extract text if HTML is provided
-    let textContent = content;
-    if (content.includes('<') && content.includes('>')) {
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(content, 'text/html');
-      textContent = doc.body.textContent;
-    }
+    // Calculate readability metrics
+    const stats = calculateTextStats(content);
+    const fleschScore = calculateFleschScore(stats);
+    const fleschKincaidGrade = calculateFleschKincaidGrade(stats);
+    const smogIndex = calculateSMOG(stats);
+    const colemanLiauIndex = calculateColemanLiau(stats);
+    const automatedReadabilityIndex = calculateARI(stats);
+    const gunningFogIndex = calculateGunningFog(stats);
     
-    // Process text for readability analysis
-    // Clean up the text to ensure proper sentence detection
-    textContent = textContent
-      .replace(/\s+/g, ' ')                 // Normalize whitespace
-      .replace(/\n/g, ' ')                  // Replace newlines with spaces
-      .replace(/\s*\.\s*/g, '. ')           // Normalize spacing around periods
-      .replace(/\s*\?\s*/g, '? ')           // Normalize spacing around question marks
-      .replace(/\s*!\s*/g, '! ')            // Normalize spacing around exclamation marks
-      .replace(/\.\s+([a-z])/g, '. $1')     // Fix case after periods
-      .replace(/\?\s+([a-z])/g, '? $1')     // Fix case after question marks
-      .replace(/!\s+([a-z])/g, '! $1');     // Fix case after exclamation marks
+    // Average of multiple readability metrics for more accurate assessment
+    const avgReadabilityScore = (
+      normalizeScore(fleschScore, 0, 100) + 
+      normalizeScore(100 - fleschKincaidGrade * 6.25, 0, 100) + 
+      normalizeScore(100 - smogIndex * 6.25, 0, 100)
+    ) / 3;
     
-    // Text statistics
-    const words = textContent.split(/\s+/).filter(word => word.length > 0);
-    const wordCount = words.length;
-    
-    // Smart sentence detection
-    // Split by periods, exclamation and question marks, but consider common abbreviations 
-    const sentenceRegex = /[^.!?]+[.!?]+/g;
-    const sentences = textContent.match(sentenceRegex) || [];
-    const sentenceCount = sentences.length;
-    
-    // Determine paragraphs by double newlines or very long sentences
-    const paragraphs = content.split(/\n\s*\n/).filter(para => para.trim().length > 0);
-    const paragraphCount = paragraphs.length;
-    
-    const characters = textContent.replace(/\s/g, '').length;
-    const syllables = countSyllables(textContent);
-    
-    // Calculate readability scores
-    const avgWordsPerSentence = wordCount / sentenceCount;
-    const avgSyllablesPerWord = syllables / wordCount;
-    
-    // Flesch Reading Ease score
-    const fleschScore = 206.835 - (1.015 * avgWordsPerSentence) - (84.6 * avgSyllablesPerWord);
-    const fleschGrade = getFleschGrade(fleschScore);
-    
-    // Flesch-Kincaid Grade Level
-    const fkGradeLevel = (0.39 * avgWordsPerSentence) + (11.8 * avgSyllablesPerWord) - 15.59;
-    
-    // Gunning Fog Index - measures the years of formal education needed to understand the text
-    const complexWords = words.filter(word => countSyllablesForWord(word) > 2).length;
-    const percentComplexWords = (complexWords / wordCount) * 100;
-    const gunningFog = 0.4 * (avgWordsPerSentence + percentComplexWords);
-    
-    // SMOG Index - estimates the years of education needed to understand a piece of writing
-    const smogIndex = 1.043 * Math.sqrt(complexWords * (30 / sentenceCount)) + 3.1291;
-    
-    // Automated Readability Index (ARI)
-    const automatedReadabilityIndex = 4.71 * (characters / wordCount) + 0.5 * (wordCount / sentenceCount) - 21.43;
-    
-    // Coleman-Liau Index - relies on characters instead of syllables
-    const l = (characters / wordCount * 100); // avg number of characters per 100 words
-    const s = (sentenceCount / wordCount * 100); // avg number of sentences per 100 words
-    const colemanLiauIndex = 0.0588 * l - 0.296 * s - 15.8;
-    
-    // Display results
-    document.getElementById('readability-scores').innerHTML = `
-      <div class="result-item">
-        <strong>Flesch Reading Ease:</strong> ${fleschScore.toFixed(1)}
-        <div class="score-interpretation">${fleschGrade}</div>
-      </div>
-      <div class="result-item">
-        <strong>Flesch-Kincaid Grade:</strong> ${fkGradeLevel.toFixed(1)}
-        <div class="score-interpretation">Grade level: ${Math.round(fkGradeLevel)}</div>
-      </div>
-      <div class="result-item">
-        <strong>Gunning Fog Index:</strong> ${gunningFog.toFixed(1)}
-        <div class="score-interpretation">Years of formal education needed: ${Math.round(gunningFog)}</div>
-      </div>
-      <div class="result-item">
-        <strong>SMOG Index:</strong> ${smogIndex.toFixed(1)}
-        <div class="score-interpretation">Years of education needed: ${Math.round(smogIndex)}</div>
-      </div>
-      <div class="result-item">
-        <strong>Automated Readability:</strong> ${automatedReadabilityIndex.toFixed(1)}
-        <div class="score-interpretation">Grade level: ${Math.round(automatedReadabilityIndex)}</div>
-      </div>
-      <div class="result-item">
-        <strong>Coleman-Liau Index:</strong> ${colemanLiauIndex.toFixed(1)}
-        <div class="score-interpretation">Grade level: ${Math.round(colemanLiauIndex)}</div>
-      </div>
-    `;
-    
-    document.getElementById('content-stats').innerHTML = `
-      <div class="result-item">
-        <strong>Word Count:</strong> ${wordCount}
-      </div>
-      <div class="result-item">
-        <strong>Sentence Count:</strong> ${sentenceCount}
-      </div>
-      <div class="result-item">
-        <strong>Paragraph Count:</strong> ${paragraphCount}
-      </div>
-      <div class="result-item">
-        <strong>Average Words Per Sentence:</strong> ${avgWordsPerSentence.toFixed(1)}
-      </div>
-      <div class="result-item">
-        <strong>Complex Words:</strong> ${complexWords} (${(complexWords / wordCount * 100).toFixed(1)}%)
-      </div>
-      <div class="result-item">
-        <strong>Average Syllables Per Word:</strong> ${avgSyllablesPerWord.toFixed(2)}
-      </div>
-    `;
-    
-    // Create chart
+    // Update UI with additional visualizations
+    const readabilityScoresEl = document.getElementById('readability-scores');
+    const contentStatsEl = document.getElementById('content-stats');
     const chartCanvas = document.getElementById('readabilityChart');
-    const ctx = chartCanvas.getContext('2d');
     
-    // Destroy previous chart if it exists
-    if (readabilityChart) {
-      readabilityChart.destroy();
+    if (readabilityScoresEl) {
+      readabilityScoresEl.innerHTML = `
+        <div class="score-item">
+          <span>Flesch Reading Ease:</span> <strong>${fleschScore.toFixed(1)}</strong>
+          <div class="score-desc">${getFleschRating(fleschScore)}</div>
+        </div>
+        <div class="score-item">
+          <span>Flesch-Kincaid Grade:</span> <strong>${fleschKincaidGrade.toFixed(1)}</strong>
+          <div class="score-desc">Approximate grade level needed to understand the text</div>
+        </div>
+        <div class="score-item">
+          <span>SMOG Index:</span> <strong>${smogIndex.toFixed(1)}</strong>
+          <div class="score-desc">Years of education needed to understand the text</div>
+        </div>
+        <div class="score-item">
+          <span>Coleman-Liau Index:</span> <strong>${colemanLiauIndex.toFixed(1)}</strong>
+          <div class="score-desc">Grade level based on character count instead of syllables</div>
+        </div>
+        <div class="score-item">
+          <span>Automated Readability:</span> <strong>${automatedReadabilityIndex.toFixed(1)}</strong>
+          <div class="score-desc">Grade level based on characters per word and words per sentence</div>
+        </div>
+        <div class="score-item">
+          <span>Gunning Fog:</span> <strong>${gunningFogIndex.toFixed(1)}</strong>
+          <div class="score-desc">Years of formal education needed to understand text</div>
+        </div>
+      `;
     }
     
-    readabilityChart = new Chart(ctx, {
-      type: 'radar',
-      data: {
-        labels: ['Flesch Reading Ease', 'Flesch-Kincaid Grade', 'Gunning Fog', 'SMOG', 'Word Count', 'Sentence Length'],
-        datasets: [{
-          label: 'Your Content',
-          data: [
-            normalizeScore(fleschScore, 0, 100),
-            normalizeScore(fkGradeLevel, 0, 18),
-            normalizeScore(gunningFog, 0, 18),
-            normalizeScore(smogIndex, 0, 18),
-            normalizeScore(wordCount, 0, 1000),
-            normalizeScore(avgWordsPerSentence, 0, 30)
-          ],
-          backgroundColor: 'rgba(37, 117, 252, 0.2)',
-          borderColor: 'rgba(37, 117, 252, 0.7)',
-          pointBackgroundColor: 'rgba(37, 117, 252, 1)',
-          pointBorderColor: '#fff',
-          pointHoverBackgroundColor: '#fff',
-          pointHoverBorderColor: 'rgba(37, 117, 252, 1)'
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          r: {
-            angleLines: {
-              display: true
-            },
-            suggestedMin: 0,
-            suggestedMax: 100
+    if (contentStatsEl) {
+      contentStatsEl.innerHTML = `
+        <div class="stat-visualization">
+          <div class="stat-metric">
+            <h4>Words</h4>
+            <div class="stat-value">${stats.wordCount}</div>
+          </div>
+          <div class="stat-metric">
+            <h4>Sentences</h4>
+            <div class="stat-value">${stats.sentenceCount}</div>
+          </div>
+          <div class="stat-metric">
+            <h4>Words/Sentence</h4>
+            <div class="stat-value">${(stats.wordCount / stats.sentenceCount).toFixed(1)}</div>
+          </div>
+          <div class="stat-metric">
+            <h4>Complex Words</h4>
+            <div class="stat-value">${((stats.complexWords / stats.wordCount) * 100).toFixed(1)}%</div>
+          </div>
+        </div>
+        <div class="heat-map" id="sentenceLengthMap">
+          ${generateSentenceLengthHeatmap(content)}
+        </div>
+        <div class="heatmap-legend">
+          <span>Short</span>
+          <span>Ideal</span>
+          <span>Long</span>
+        </div>
+      `;
+    }
+    
+    // Update gauge
+    const gaugeFill = document.getElementById('gaugeFill');
+    const gaugeValue = document.getElementById('gaugeValue');
+    
+    if (gaugeFill && gaugeValue) {
+      // Convert Flesch score (0-100) to gauge percentage
+      const fillPercentage = Math.min(100, Math.max(0, avgReadabilityScore));
+      gaugeFill.style.height = `${fillPercentage}%`;
+      gaugeValue.textContent = avgReadabilityScore.toFixed(0);
+      
+      // Color based on readability
+      let fillColor = '';
+      if (avgReadabilityScore >= 80) {
+        fillColor = 'var(--success-color)';
+      } else if (avgReadabilityScore >= 60) {
+        fillColor = 'var(--secondary-color)';
+      } else if (avgReadabilityScore >= 40) {
+        fillColor = 'var(--accent-color)';
+      } else {
+        fillColor = 'var(--danger-color)';
+      }
+      
+      gaugeFill.style.background = fillColor;
+      gaugeValue.style.color = fillColor;
+    }
+    
+    // Create/update radar chart
+    if (chartCanvas) {
+      const ctx = chartCanvas.getContext('2d');
+      
+      if (readabilityChart) {
+        readabilityChart.destroy();
+      }
+      
+      // Ensure data points are valid and in proper range
+      const sentenceLength = stats.sentenceCount > 0 ? stats.wordCount / stats.sentenceCount : 15;
+      const wordLength = stats.wordCount > 0 ? stats.syllableCount / stats.wordCount : 1.5;
+      
+      const theme = localStorage.getItem('themePref') || config.theme.defaultTheme;
+      const chartColors = config.chartColors[theme] || config.chartColors.light;
+      
+      readabilityChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: ['Reading Ease', 'Grade Level', 'Sentence Length', 'Word Length', 'Content Length'],
+          datasets: [{
+            label: 'Your Content',
+            data: [
+              mapToRange(fleschScore, 0, 100, 0, 100),
+              mapToRange(Math.min(fleschKincaidGrade, 16), 0, 16, 100, 0),
+              mapToRange(sentenceLength, 10, 25, 100, 0),
+              mapToRange(wordLength, 1, 3, 100, 0),
+              mapToRange(Math.min(stats.wordCount, 1000), 0, 1000, 0, 100)
+            ],
+            backgroundColor: chartColors.backgroundColor,
+            borderColor: chartColors.borderColor,
+            borderWidth: 1
+          }, {
+            label: 'Ideal Content',
+            data: [75, 75, 70, 65, 60],
+            backgroundColor: chartColors.accentColor,
+            borderColor: chartColors.accentColor.replace('0.6', '1'),
+            borderWidth: 1
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            r: {
+              min: 0,
+              max: 100,
+              ticks: {
+                display: false,
+                stepSize: 20
+              },
+              pointLabels: {
+                font: {
+                  size: 12
+                }
+              }
+            }
           }
         }
-      }
-    });
+      });
+    }
   });
   
-  function countSyllables(text) {
-    const words = text.toLowerCase().split(/\s+/).filter(word => word.length > 0);
-    let syllableCount = 0;
+  // Helper function to generate heatmap for sentence length
+  function generateSentenceLengthHeatmap(text) {
+    const sentences = text.split(/[.!?]+/).filter(s => s.trim().length > 0);
     
-    words.forEach(word => {
-      syllableCount += countSyllablesForWord(word);
+    let html = '';
+    sentences.forEach(sentence => {
+      const words = sentence.trim().split(/\s+/);
+      const wordCount = words.length;
+      
+      // Determine color based on optimal sentence length (8-15 words)
+      let color = '';
+      if (wordCount < 5) {
+        color = 'var(--chart-bg)'; // Too short
+      } else if (wordCount <= 15) {
+        color = 'var(--success-color)'; // Optimal
+      } else if (wordCount <= 25) {
+        color = 'var(--warning-color)'; // Getting long
+      } else {
+        color = 'var(--danger-color)'; // Too long
+      }
+      
+      const cell = `<div class="heat-cell" style="background-color: ${color}" title="${wordCount} words: '${sentence.trim().substring(0, 30)}${sentence.length > 30 ? '...' : ''}'"></div>`;
+      html += cell;
     });
     
-    return syllableCount;
+    return html;
   }
   
-  function countSyllablesForWord(word) {
-    // Remove non-word characters
+  // Readability analysis functions
+  function calculateTextStats(text) {
+    // Clean text
+    const cleanText = text.replace(/\s+/g, ' ').trim();
+    
+    // Count sentences - improved regex for better sentence detection
+    const sentences = cleanText.split(/[.!?]+(?=\s+[A-Z]|\s*$)/).filter(s => s.trim().length > 0);
+    const sentenceCount = Math.max(1, sentences.length); // Ensure at least 1 sentence
+    
+    // Count words
+    const words = cleanText.split(/\s+/).filter(w => w.match(/[a-zA-Z0-9]/));
+    const wordCount = Math.max(1, words.length); // Ensure at least 1 word
+    
+    // Count characters
+    const charCount = words.join('').length;
+    const avgCharsPerWord = charCount / wordCount;
+    
+    // Count syllables
+    let syllableCount = 0;
+    let complexWords = 0;
+    
+    words.forEach(word => {
+      const count = countSyllables(word);
+      syllableCount += count;
+      if (count >= 3 && !isNameOrAbbreviation(word)) {
+        complexWords++;
+      }
+    });
+    
+    return {
+      sentenceCount,
+      wordCount,
+      syllableCount,
+      complexWords,
+      charCount,
+      avgCharsPerWord
+    };
+  }
+
+  function countSyllables(word) {
     word = word.toLowerCase().replace(/[^a-z]/g, '');
     
-    // Special cases
-    if (word.length <= 3) {
-      return 1;
+    // Special cases and exceptions
+    if (!word || word.length <= 1) return 1;
+    
+    // List of common exceptions
+    const exceptions = {
+      "simile": 3,
+      "forever": 3,
+      "shoreline": 2
+    };
+    
+    if (exceptions[word]) return exceptions[word];
+    
+    // Remove endings
+    if (word.length > 3) {
+      if (word.match(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/)) {
+        word = word.replace(/(?:[^laeiouy]es|ed|[^laeiouy]e)$/, '');
+      }
     }
     
-    // Remove es, ed at the end of words
-    word = word.replace(/(?:es|ed)$/, '');
+    // Count vowel groups as syllables
+    const syllables = word.match(/[aeiouy]{1,2}/g);
     
-    // Count vowel groups
-    const vowels = word.match(/[aeiouy]+/g);
-    let count = vowels ? vowels.length : 0;
-    
-    // Adjust for special cases
-    if (word.length > 1) {
-      // Subtract 1 if word ends with 'e' unless it's a short word
-      if (word.endsWith('e') && !['the', 'are', 'were'].includes(word)) {
-        count--;
-      }
-      
-      // Handle 'y' at the end as an added syllable
-      if (word.endsWith('y') && vowels && !vowels[vowels.length - 1].endsWith('y')) {
-        count++;
-      }
-      
-      // Count 'io', 'ia', etc. as separate syllables
-      const matches = word.match(/[aeiouy][aeiouy]/g) || [];
-      count -= matches.length / 2;
-    }
-    
-    // Every word has at least one syllable
-    return Math.max(1, Math.round(count));
+    // Return count of vowel groups, with a minimum of 1 syllable
+    return syllables ? syllables.length : 1;
   }
   
-  function getFleschGrade(score) {
-    if (score >= 90) return 'Very Easy - 5th grade';
-    if (score >= 80) return 'Easy - 6th grade';
-    if (score >= 70) return 'Fairly Easy - 7th grade';
-    if (score >= 60) return 'Standard - 8th & 9th grade';
-    if (score >= 50) return 'Fairly Difficult - 10th to 12th grade';
-    if (score >= 30) return 'Difficult - College level';
-    return 'Very Difficult - College Graduate';
+  function isNameOrAbbreviation(word) {
+    // Check if word is likely a proper name or abbreviation
+    return word.length <= 2 || 
+           (word.length >= 2 && word[0] === word[0].toUpperCase() && word[1] === word[1].toLowerCase()) ||
+           word.toUpperCase() === word;
+  }
+
+  function calculateFleschScore(stats) {
+    // Flesch Reading Ease = 206.835 - 1.015 × (words/sentences) - 84.6 × (syllables/words)
+    const wordsPerSentence = stats.wordCount / stats.sentenceCount;
+    const syllablesPerWord = stats.syllableCount / stats.wordCount;
+    
+    return 206.835 - (1.015 * wordsPerSentence) - (84.6 * syllablesPerWord);
+  }
+
+  function calculateFleschKincaidGrade(stats) {
+    // Flesch-Kincaid Grade Level = 0.39 × (words/sentences) + 11.8 × (syllables/words) - 15.59
+    const wordsPerSentence = stats.wordCount / stats.sentenceCount;
+    const syllablesPerWord = stats.syllableCount / stats.wordCount;
+    
+    return 0.39 * wordsPerSentence + 11.8 * syllablesPerWord - 15.59;
+  }
+
+  function calculateSMOG(stats) {
+    // SMOG = 1.043 × sqrt(30 × (complex words / sentences)) + 3.1291
+    const complexWordRatio = stats.complexWords / stats.sentenceCount;
+    
+    return 1.043 * Math.sqrt(30 * complexWordRatio) + 3.1291;
+  }
+  
+  function calculateColemanLiau(stats) {
+    // Coleman-Liau Index = 0.0588 × (avg chars per 100 words) - 0.296 × (avg sentences per 100 words) - 15.8
+    const L = stats.avgCharsPerWord * 100;
+    const S = (stats.sentenceCount / stats.wordCount) * 100;
+    
+    return 0.0588 * L - 0.296 * S - 15.8;
+  }
+  
+  function calculateARI(stats) {
+    // Automated Readability Index = 4.71 × (chars/words) + 0.5 × (words/sentences) - 21.43
+    const charsPerWord = stats.charCount / stats.wordCount;
+    const wordsPerSentence = stats.wordCount / stats.sentenceCount;
+    
+    return 4.71 * charsPerWord + 0.5 * wordsPerSentence - 21.43;
+  }
+  
+  function calculateGunningFog(stats) {
+    // Gunning Fog Index = 0.4 × ((words/sentences) + 100 × (complex words/words))
+    const wordsPerSentence = stats.wordCount / stats.sentenceCount;
+    const percentComplexWords = stats.complexWords / stats.wordCount;
+    
+    return 0.4 * (wordsPerSentence + 100 * percentComplexWords);
+  }
+
+  function getFleschRating(score) {
+    if (score >= 90) return "Very Easy - 5th grade level";
+    if (score >= 80) return "Easy - 6th grade level";
+    if (score >= 70) return "Fairly Easy - 7th grade level";
+    if (score >= 60) return "Standard - 8th-9th grade level";
+    if (score >= 50) return "Fairly Difficult - 10th-12th grade level";
+    if (score >= 30) return "Difficult - College level";
+    return "Very Difficult - College graduate level";
   }
   
   function normalizeScore(score, min, max) {
-    // Convert any score to a 0-100 scale with proper boundary checking
-    if (max === min) return 50; // Handle division by zero case
-    return Math.max(0, Math.min(100, ((score - min) / (max - min)) * 100));
+    return Math.min(100, Math.max(0, ((score - min) / (max - min)) * 100));
+  }
+
+  function mapToRange(value, fromMin, fromMax, toMin, toMax) {
+    // Map a value from one range to another
+    const fromRange = fromMax - fromMin;
+    const toRange = toMax - toMin;
+    const valueScaled = (value - fromMin) / fromRange;
+    
+    return toMin + (valueScaled * toRange);
   }
 }
 
-// Meta Tags Generator Tool
-function setupMetaTags() {
-  const generateBtn = document.querySelector('#meta-tags .analyze-btn');
+// Meta Tags Generator
+function initMetaTags() {
+  const generateBtn = document.getElementById('meta-tags .analyze-btn');
   const titleInput = document.getElementById('page-title');
   const descInput = document.getElementById('page-description');
   const keywordsInput = document.getElementById('keywords');
   const canonicalInput = document.getElementById('canonical-url');
   const copyBtn = document.getElementById('copy-meta');
   
+  if (!generateBtn || !titleInput || !descInput || !keywordsInput || !canonicalInput || !copyBtn) return;
+  
   generateBtn.addEventListener('click', () => {
     const title = titleInput.value.trim();
     const description = descInput.value.trim();
     const keywords = keywordsInput.value.trim();
-    const canonicalUrl = canonicalInput.value.trim();
+    const canonical = canonicalInput.value.trim();
     
     if (!title || !description) {
-      alert('Please enter at least a title and description');
+      alert('Please enter at least a title and description.');
       return;
     }
     
@@ -784,243 +995,155 @@ function setupMetaTags() {
       metaTags += `<meta name="keywords" content="${escapeHtml(keywords)}">\n`;
     }
     
+    if (canonical) {
+      metaTags += `<link rel="canonical" href="${escapeHtml(canonical)}">\n`;
+    }
+    
     // Open Graph tags
     metaTags += `<meta property="og:title" content="${escapeHtml(title)}">\n`;
     metaTags += `<meta property="og:description" content="${escapeHtml(description)}">\n`;
+    if (canonical) {
+      metaTags += `<meta property="og:url" content="${escapeHtml(canonical)}">\n`;
+    }
     metaTags += `<meta property="og:type" content="website">\n`;
     
-    if (canonicalUrl) {
-      metaTags += `<link rel="canonical" href="${escapeHtml(canonicalUrl)}">\n`;
-      metaTags += `<meta property="og:url" content="${escapeHtml(canonicalUrl)}">\n`;
-    }
-    
-    // Twitter card
+    // Twitter Card tags
     metaTags += `<meta name="twitter:card" content="summary">\n`;
     metaTags += `<meta name="twitter:title" content="${escapeHtml(title)}">\n`;
     metaTags += `<meta name="twitter:description" content="${escapeHtml(description)}">\n`;
     
-    // Display generated meta tags
-    document.getElementById('meta-output').textContent = metaTags;
+    // Update UI
+    const metaOutputEl = document.getElementById('meta-output');
+    const serpPreviewEl = document.getElementById('serp-preview');
     
-    // Show preview
-    const serpPreview = document.getElementById('serp-preview');
-    serpPreview.innerHTML = `
-      <h4>${title}</h4>
-      <div class="url">${canonicalUrl || 'example.com/page'}</div>
-      <div class="description">${description}</div>
-    `;
+    if (metaOutputEl) {
+      metaOutputEl.textContent = metaTags;
+    }
+    
+    if (serpPreviewEl) {
+      serpPreviewEl.innerHTML = `
+        <div class="serp-title">${escapeHtml(title)}</div>
+        <div class="serp-url">${canonical || 'example.com/page'}</div>
+        <div class="serp-desc">${escapeHtml(description)}</div>
+      `;
+    }
   });
   
-  // Copy to clipboard functionality
   copyBtn.addEventListener('click', () => {
     const metaOutput = document.getElementById('meta-output');
-    navigator.clipboard.writeText(metaOutput.textContent)
-      .then(() => {
-        copyBtn.textContent = 'Copied!';
-        setTimeout(() => {
-          copyBtn.textContent = 'Copy to Clipboard';
-        }, 2000);
-      })
-      .catch(err => {
-        console.error('Failed to copy: ', err);
-        alert('Failed to copy to clipboard');
-      });
+    if (metaOutput) {
+      navigator.clipboard.writeText(metaOutput.textContent)
+        .then(() => {
+          copyBtn.textContent = 'Copied!';
+          setTimeout(() => {
+            copyBtn.textContent = 'Copy to Clipboard';
+          }, 2000);
+        })
+        .catch(err => {
+          console.error('Could not copy text: ', err);
+        });
+    }
   });
   
-  function escapeHtml(text) {
-    return text
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;')
-      .replace(/"/g, '&quot;')
-      .replace(/'/g, '&#039;');
+  function escapeHtml(unsafe) {
+    return unsafe
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#039;");
   }
 }
 
-// Schema Generator Tool
-function setupSchemaGenerator() {
+// Schema Generator
+function initSchemaGenerator() {
   const schemaType = document.getElementById('schema-type');
   const fieldsContainer = document.getElementById('schema-fields-container');
   const generateBtn = document.getElementById('generate-schema-btn');
-  const copyBtn = document.getElementById('copy-schema');
   const schemaOutput = document.getElementById('schema-output');
+  const copyBtn = document.getElementById('copy-schema');
+  const validateBtn = document.getElementById('validate-schema-btn');
+  const suggestBtn = document.getElementById('suggest-schema-btn');
+  const contentInput = document.getElementById('schema-content-analysis');
   
-  // Schema field definitions for different types
+  if (!schemaType || !fieldsContainer || !generateBtn || !schemaOutput || !copyBtn) return;
+  
   const schemaFields = {
     LocalBusiness: [
       { name: 'name', label: 'Business Name', type: 'text', required: true },
-      { name: 'description', label: 'Business Description', type: 'textarea', required: true },
+      { name: 'description', label: 'Business Description', type: 'textarea' },
       { name: 'url', label: 'Website URL', type: 'url', required: true },
-      { name: 'telephone', label: 'Telephone', type: 'tel', required: false },
+      { name: 'telephone', label: 'Phone Number', type: 'tel' },
       { name: 'address', label: 'Street Address', type: 'text', required: true },
       { name: 'city', label: 'City', type: 'text', required: true },
       { name: 'state', label: 'State', type: 'text', required: true },
       { name: 'zipCode', label: 'Zip Code', type: 'text', required: true },
-      { name: 'country', label: 'Country', type: 'text', required: true },
-      { name: 'priceRange', label: 'Price Range (e.g. $$$)', type: 'text', required: false },
-      { name: 'image', label: 'Business Image URL', type: 'url', required: false }
+      { name: 'country', label: 'Country', type: 'text', required: true }
     ],
     Organization: [
       { name: 'name', label: 'Organization Name', type: 'text', required: true },
-      { name: 'description', label: 'Organization Description', type: 'textarea', required: true },
+      { name: 'description', label: 'Organization Description', type: 'textarea' },
       { name: 'url', label: 'Website URL', type: 'url', required: true },
-      { name: 'logo', label: 'Logo URL', type: 'url', required: false },
-      { name: 'contactPoint', label: 'Contact Phone', type: 'tel', required: false },
-      { name: 'email', label: 'Email', type: 'email', required: false }
+      { name: 'logo', label: 'Logo URL', type: 'url' }
     ],
     Person: [
       { name: 'name', label: 'Full Name', type: 'text', required: true },
-      { name: 'jobTitle', label: 'Job Title', type: 'text', required: false },
-      { name: 'worksFor', label: 'Company Name', type: 'text', required: false },
-      { name: 'url', label: 'Website URL', type: 'url', required: false },
-      { name: 'image', label: 'Profile Image URL', type: 'url', required: false },
-      { name: 'description', label: 'Brief Biography', type: 'textarea', required: false }
+      { name: 'jobTitle', label: 'Job Title', type: 'text' },
+      { name: 'telephone', label: 'Phone Number', type: 'tel' },
+      { name: 'email', label: 'Email', type: 'email' },
+      { name: 'url', label: 'Website URL', type: 'url' }
     ],
     Product: [
       { name: 'name', label: 'Product Name', type: 'text', required: true },
       { name: 'description', label: 'Product Description', type: 'textarea', required: true },
-      { name: 'image', label: 'Product Image URL', type: 'url', required: false },
-      { name: 'brand', label: 'Brand Name', type: 'text', required: true },
-      { name: 'offers', label: 'Price (USD)', type: 'number', required: true },
-      { name: 'sku', label: 'SKU', type: 'text', required: false },
-      { name: 'availability', label: 'Availability', type: 'select', required: true, 
-        options: ['InStock', 'OutOfStock', 'PreOrder', 'Discontinued'] }
+      { name: 'image', label: 'Product Image URL', type: 'url' },
+      { name: 'brand', label: 'Brand Name', type: 'text' },
+      { name: 'price', label: 'Price', type: 'number', required: true },
+      { name: 'priceCurrency', label: 'Currency (e.g., USD)', type: 'text', required: true }
     ],
     Event: [
       { name: 'name', label: 'Event Name', type: 'text', required: true },
-      { name: 'description', label: 'Event Description', type: 'textarea', required: true },
+      { name: 'description', label: 'Event Description', type: 'textarea' },
       { name: 'startDate', label: 'Start Date & Time', type: 'datetime-local', required: true },
-      { name: 'endDate', label: 'End Date & Time', type: 'datetime-local', required: true },
-      { name: 'location', label: 'Venue Name', type: 'text', required: true },
-      { name: 'address', label: 'Street Address', type: 'text', required: true },
-      { name: 'city', label: 'City', type: 'text', required: true },
-      { name: 'image', label: 'Event Image URL', type: 'url', required: false },
-      { name: 'offers', label: 'Ticket Price (USD)', type: 'number', required: false }
+      { name: 'endDate', label: 'End Date & Time', type: 'datetime-local' },
+      { name: 'location', label: 'Location Name', type: 'text', required: true },
+      { name: 'address', label: 'Address', type: 'text', required: true }
     ],
     Article: [
       { name: 'headline', label: 'Article Headline', type: 'text', required: true },
-      { name: 'description', label: 'Article Description', type: 'textarea', required: true },
-      { name: 'author', label: 'Author Name', type: 'text', required: true },
-      { name: 'image', label: 'Featured Image URL', type: 'url', required: false },
-      { name: 'datePublished', label: 'Date Published', type: 'date', required: true },
-      { name: 'dateModified', label: 'Date Modified', type: 'date', required: false },
-      { name: 'publisher', label: 'Publisher Name', type: 'text', required: true },
-      { name: 'publisherLogo', label: 'Publisher Logo URL', type: 'url', required: false }
+      { name: 'description', label: 'Article Description', type: 'textarea' },
+      { name: 'image', label: 'Featured Image URL', type: 'url' },
+      { name: 'authorName', label: 'Author Name', type: 'text', required: true },
+      { name: 'publishDate', label: 'Date Published', type: 'date', required: true },
+      { name: 'publisher', label: 'Publisher Name', type: 'text', required: true }
     ],
     FAQ: [
-      { name: 'title', label: 'FAQ Page Title', type: 'text', required: true },
-      { name: 'description', label: 'FAQ Page Description', type: 'textarea', required: false },
       { name: 'question1', label: 'Question 1', type: 'text', required: true },
       { name: 'answer1', label: 'Answer 1', type: 'textarea', required: true },
-      { name: 'question2', label: 'Question 2', type: 'text', required: false },
-      { name: 'answer2', label: 'Answer 2', type: 'textarea', required: false },
-      { name: 'question3', label: 'Question 3', type: 'text', required: false },
-      { name: 'answer3', label: 'Answer 3', type: 'textarea', required: false }
+      { name: 'question2', label: 'Question 2', type: 'text' },
+      { name: 'answer2', label: 'Answer 2', type: 'textarea' },
+      { name: 'question3', label: 'Question 3', type: 'text' },
+      { name: 'answer3', label: 'Answer 3', type: 'textarea' }
     ]
   };
   
-  // Generate form fields based on schema type
+  // Initialize with the default schema type
+  renderSchemaFields(schemaType.value);
+  
   schemaType.addEventListener('change', () => {
-    renderFields(schemaType.value);
+    renderSchemaFields(schemaType.value);
   });
   
-  // Initialize with default type
-  renderFields(schemaType.value);
-  
-  function renderFields(type) {
-    const fields = schemaFields[type];
-    fieldsContainer.innerHTML = '';
-    
-    fields.forEach(field => {
-      const fieldGroup = document.createElement('div');
-      fieldGroup.className = 'form-group';
-      
-      const fieldLabel = document.createElement('label');
-      fieldLabel.textContent = field.label + (field.required ? ' *' : '');
-      fieldGroup.appendChild(fieldLabel);
-      
-      let inputElement;
-      
-      if (field.type === 'textarea') {
-        inputElement = document.createElement('textarea');
-      } else if (field.type === 'select') {
-        inputElement = document.createElement('select');
-        field.options.forEach(option => {
-          const optionEl = document.createElement('option');
-          optionEl.value = option;
-          optionEl.textContent = option;
-          inputElement.appendChild(optionEl);
-        });
-      } else {
-        inputElement = document.createElement('input');
-        inputElement.type = field.type;
-      }
-      
-      inputElement.id = 'schema-' + field.name;
-      inputElement.name = field.name;
-      inputElement.required = field.required;
-      inputElement.className = 'schema-input';
-      
-      fieldGroup.appendChild(inputElement);
-      fieldsContainer.appendChild(fieldGroup);
-    });
-  }
-  
-  // Generate schema based on form inputs
   generateBtn.addEventListener('click', () => {
-    const selectedType = schemaType.value;
-    const fields = schemaFields[selectedType];
-    const schemaData = {};
-    let isValid = true;
+    const type = schemaType.value;
+    const schema = generateSchema(type);
     
-    // Collect form data
-    fields.forEach(field => {
-      const inputEl = document.getElementById('schema-' + field.name);
-      if (field.required && !inputEl.value) {
-        inputEl.classList.add('invalid');
-        isValid = false;
-      } else {
-        inputEl.classList.remove('invalid');
-        if (inputEl.value) {
-          if (selectedType === 'FAQ' && field.name.startsWith('question')) {
-            // Handle FAQ questions and answers separately
-            const num = field.name.replace('question', '');
-            const answer = document.getElementById('schema-answer' + num).value;
-            if (!schemaData.faqs) schemaData.faqs = [];
-            if (answer) {
-              schemaData.faqs.push({
-                question: inputEl.value,
-                answer: answer
-              });
-            }
-          } else if (!field.name.startsWith('answer')) {
-            // Skip answer fields as they're handled with questions
-            schemaData[field.name] = inputEl.value;
-          }
-        }
-      }
-    });
-    
-    if (!isValid) {
-      alert('Please fill in all required fields marked with *');
-      return;
+    if (schema) {
+      const schemaJson = JSON.stringify(schema, null, 2);
+      schemaOutput.textContent = `<script type="application/ld+json">\n${schemaJson}\n</script>`;
     }
-    
-    // Generate schema JSON
-    const schema = generateSchemaJSON(selectedType, schemaData);
-    
-    // Display the generated schema
-    schemaOutput.textContent = schema;
-    
-    // Update schema info
-    document.getElementById('schema-info').innerHTML = `
-      <p>Your ${selectedType} schema has been generated successfully.</p>
-      <p>Add this code to the &lt;head&gt; section of your webpage.</p>
-      <p>You can test your schema with <a href="https://search.google.com/test/rich-results" target="_blank">Google's Rich Results Test</a>.</p>
-    `;
   });
   
-  // Copy to clipboard functionality
   copyBtn.addEventListener('click', () => {
     navigator.clipboard.writeText(schemaOutput.textContent)
       .then(() => {
@@ -1030,1307 +1153,956 @@ function setupSchemaGenerator() {
         }, 2000);
       })
       .catch(err => {
-        console.error('Failed to copy: ', err);
-        alert('Failed to copy to clipboard');
+        console.error('Could not copy text: ', err);
       });
   });
   
-  function generateSchemaJSON(type, data) {
-    let schemaObj = {
-      "@context": "https://schema.org",
-      "@type": type
-    };
-    
-    switch (type) {
-      case 'LocalBusiness':
-        schemaObj = {
-          ...schemaObj,
-          "name": data.name,
-          "description": data.description,
-          "url": data.url,
-          "address": {
-            "@type": "PostalAddress",
-            "streetAddress": data.address,
-            "addressLocality": data.city,
-            "addressRegion": data.state,
-            "postalCode": data.zipCode,
-            "addressCountry": data.country
-          }
-        };
-        
-        if (data.telephone) schemaObj.telephone = data.telephone;
-        if (data.priceRange) schemaObj.priceRange = data.priceRange;
-        if (data.image) schemaObj.image = data.image;
-        break;
-        
-      case 'Organization':
-        schemaObj = {
-          ...schemaObj,
-          "name": data.name,
-          "description": data.description,
-          "url": data.url
-        };
-        
-        if (data.logo) schemaObj.logo = data.logo;
-        if (data.contactPoint) {
-          schemaObj.contactPoint = {
-            "@type": "ContactPoint",
-            "telephone": data.contactPoint,
-            "contactType": "customer service"
-          };
-        }
-        if (data.email) schemaObj.email = data.email;
-        break;
-        
-      case 'Person':
-        schemaObj = {
-          ...schemaObj,
-          "name": data.name
-        };
-        
-        if (data.jobTitle) schemaObj.jobTitle = data.jobTitle;
-        if (data.worksFor) {
-          schemaObj.worksFor = {
-            "@type": "Organization",
-            "name": data.worksFor
-          };
-        }
-        if (data.url) schemaObj.url = data.url;
-        if (data.image) schemaObj.image = data.image;
-        if (data.description) schemaObj.description = data.description;
-        break;
-        
-      case 'Product':
-        schemaObj = {
-          ...schemaObj,
-          "name": data.name,
-          "description": data.description,
-          "brand": {
-            "@type": "Brand",
-            "name": data.brand
-          }
-        };
-        
-        if (data.image) schemaObj.image = data.image;
-        if (data.offers) {
-          schemaObj.offers = {
-            "@type": "Offer",
-            "price": data.offers,
-            "priceCurrency": "USD"
-          };
-          
-          if (data.availability) {
-            schemaObj.offers.availability = "https://schema.org/" + data.availability;
-          }
-        }
-        if (data.sku) schemaObj.sku = data.sku;
-        break;
-        
-      case 'Event':
-        schemaObj = {
-          ...schemaObj,
-          "name": data.name,
-          "description": data.description,
-          "startDate": data.startDate,
-          "endDate": data.endDate,
-          "location": {
-            "@type": "Place",
-            "name": data.location,
-            "address": {
-              "@type": "PostalAddress",
-              "streetAddress": data.address,
-              "addressLocality": data.city
-            }
-          }
-        };
-        
-        if (data.image) schemaObj.image = data.image;
-        if (data.offers) {
-          schemaObj.offers = {
-            "@type": "Offer",
-            "price": data.offers,
-            "priceCurrency": "USD"
-          };
-        }
-        break;
-        
-      case 'Article':
-        schemaObj = {
-          ...schemaObj,
-          "headline": data.headline,
-          "description": data.description,
-          "author": {
-            "@type": "Person",
-            "name": data.author
-          },
-          "datePublished": data.datePublished,
-          "publisher": {
-            "@type": "Organization",
-            "name": data.publisher
-          }
-        };
-        
-        if (data.image) schemaObj.image = data.image;
-        if (data.dateModified) schemaObj.dateModified = data.dateModified;
-        if (data.publisherLogo) {
-          schemaObj.publisher.logo = {
-            "@type": "ImageObject",
-            "url": data.publisherLogo
-          };
-        }
-        break;
-        
-      case 'FAQ':
-        schemaObj = {
-          "@context": "https://schema.org",
-          "@type": "FAQPage",
-          "mainEntity": data.faqs.map(faq => ({
-            "@type": "Question",
-            "name": faq.question,
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": faq.answer
-            }
-          }))
-        };
-        break;
-    }
-    
-    return `<script type="application/ld+json">\n${JSON.stringify(schemaObj, null, 2)}\n</script>`;
-  }
-}
-
-// Keyword Database Tool
-function setupKeywordDatabase() {
-  const searchBtn = document.getElementById('search-keyword-btn');
-  const keywordInput = document.getElementById('keyword-search');
-  let trendChart = null;
-  
-  searchBtn.addEventListener('click', () => {
-    searchKeyword();
-  });
-  
-  keywordInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') searchKeyword();
-  });
-  
-  async function searchKeyword() {
-    const keyword = keywordInput.value.trim().toLowerCase();
-    
-    if (!keyword) {
-      alert('Please enter a keyword to search');
-      return;
-    }
-    
-    document.getElementById('keyword-search-results').innerHTML = `
-      <div class="loading-indicator">
-        <div class="spinner"></div>
-        <p>Searching for keyword data...</p>
-      </div>
-    `;
-    
-    try {
-      // Connect to RapidAPI Keywords Everywhere API
-      const response = await fetch(`https://cors-anywhere.herokuapp.com/https://keywords-everywhere.p.rapidapi.com/keywordOverview?keyword=${encodeURIComponent(keyword)}&country=us&currency=usd`, {
-        method: 'GET',
-        headers: {
-          'X-RapidAPI-Key': 'SIGN-UP-FOR-KEY',
-          'X-RapidAPI-Host': 'keywords-everywhere.p.rapidapi.com'
-        }
-      });
+  // Add validation capability
+  if (validateBtn) {
+    validateBtn.addEventListener('click', () => {
+      const schemaJson = schemaOutput.textContent.replace('<script type="application/ld+json">\n', '').replace('\n</script>', '');
       
-      // If we can't connect to the API, fallback to our sample data
-      if (!response.ok) {
-        console.warn('API connection failed, using sample data instead');
-        useSampleData(keyword);
+      try {
+        const schemaObj = JSON.parse(schemaJson);
+        validateSchema(schemaObj);
+      } catch (e) {
+        showValidationError('Invalid JSON format: ' + e.message);
+      }
+    });
+  }
+  
+  // Add suggestion capability
+  if (suggestBtn && contentInput) {
+    suggestBtn.addEventListener('click', () => {
+      const content = contentInput.value.trim();
+      if (!content) {
+        alert('Please enter some content to analyze for schema suggestions.');
         return;
       }
       
-      const data = await response.json();
+      suggestSchemaFromContent(content);
+    });
+  }
+  
+  function renderSchemaFields(type) {
+    // Clear current fields
+    fieldsContainer.innerHTML = '';
+    
+    const fields = schemaFields[type] || [];
+    
+    fields.forEach(field => {
+      const fieldElement = document.createElement('div');
+      fieldElement.className = 'form-group';
       
-      // Process and display the data
-      displayApiResults(keyword, data);
+      const label = document.createElement('label');
+      label.textContent = field.label + (field.required ? ' *' : '');
       
-    } catch (error) {
-      console.error('Error fetching keyword data:', error);
-      // Fallback to sample data if API fails
-      useSampleData(keyword);
+      let input;
+      if (field.type === 'textarea') {
+        input = document.createElement('textarea');
+      } else {
+        input = document.createElement('input');
+        input.type = field.type;
+      }
+      
+      input.id = `schema-${field.name}`;
+      input.name = field.name;
+      input.required = field.required;
+      
+      fieldElement.appendChild(label);
+      fieldElement.appendChild(input);
+      fieldsContainer.appendChild(fieldElement);
+    });
+  }
+  
+  function generateSchema(type) {
+    const fields = schemaFields[type] || [];
+    const missingRequired = [];
+    
+    // Check for required fields
+    fields.forEach(field => {
+      if (field.required) {
+        const input = document.getElementById(`schema-${field.name}`);
+        if (input && !input.value.trim()) {
+          missingRequired.push(field.label);
+        }
+      }
+    });
+    
+    if (missingRequired.length > 0) {
+      alert(`Please fill in the following required fields: ${missingRequired.join(', ')}`);
+      return null;
+    }
+    
+    // Generate schema based on type
+    switch (type) {
+      case 'LocalBusiness':
+        return generateLocalBusinessSchema();
+      case 'Organization':
+        return generateOrganizationSchema();
+      case 'Person':
+        return generatePersonSchema();
+      case 'Product':
+        return generateProductSchema();
+      case 'Event':
+        return generateEventSchema();
+      case 'Article':
+        return generateArticleSchema();
+      case 'FAQ':
+        return generateFAQSchema();
+      default:
+        return null;
     }
   }
   
-  function displayApiResults(keyword, data) {
-    // Format the data from the API
-    const volume = data.vol || 0;
-    const cpc = data.cpc || 0;
-    const competition = data.competition || 0;
-    
-    // Create trend data (usually would come from API)
-    let trend = Array(12).fill(0);
-    if (volume) {
-      // Generate trend data based on volume
-      const baseVolume = volume / 12;
-      trend = Array.from({length: 12}, () => 
-        Math.floor(baseVolume * (0.8 + Math.random() * 0.4))
-      );
-    }
-    
-    // Get related keywords
-    const related = data.related_keywords || [];
-    
-    // Format the data for display
-    const keywordData = {
-      volume: volume,
-      cpc: cpc,
-      competition: competition / 100, // Convert to 0-1 range if needed
-      trend: trend,
-      related: related.map(item => ({
-        keyword: item.keyword,
-        volume: item.vol,
-        competition: item.competition / 100
-      }))
-    };
-    
-    // Display the results
-    renderKeywordResults(keyword, keywordData);
+  function getFieldValue(name) {
+    const el = document.getElementById(`schema-${name}`);
+    return el ? el.value.trim() : '';
   }
   
-  function useSampleData(keyword) {
-    // Sample keyword database (in a real app, this would come from an API)
-    const keywordDatabase = {
-      "seo": {
-        volume: 33100,
-        cpc: 15.20,
-        competition: 0.95,
-        trend: [3200, 3100, 3300, 3400, 3200, 3100, 3000, 3200, 3400, 3500, 3600, 3700],
-        related: [
-          { keyword: "seo tools", volume: 5400, competition: 0.88 },
-          { keyword: "seo services", volume: 8100, competition: 0.92 },
-          { keyword: "seo agency", volume: 6700, competition: 0.90 },
-          { keyword: "seo strategy", volume: 4200, competition: 0.85 },
-          { keyword: "local seo", volume: 3900, competition: 0.82 }
-        ]
-      },
-      "content marketing": {
-        volume: 18200,
-        cpc: 12.80,
-        competition: 0.89,
-        trend: [1500, 1600, 1620, 1700, 1750, 1800, 1800, 1850, 1900, 1920, 1950, 2000],
-        related: [
-          { keyword: "content strategy", volume: 4100, competition: 0.80 },
-          { keyword: "content creation", volume: 6300, competition: 0.83 },
-          { keyword: "content calendar", volume: 2100, competition: 0.75 },
-          { keyword: "content marketing tools", volume: 3300, competition: 0.87 },
-          { keyword: "b2b content marketing", volume: 1200, competition: 0.82 }
-        ]
-      },
-      "backlinks": {
-        volume: 22800,
-        cpc: 10.50,
-        competition: 0.91,
-        trend: [1900, 1950, 2000, 2050, 2100, 2200, 2150, 2100, 2150, 2200, 2250, 2300],
-        related: [
-          { keyword: "quality backlinks", volume: 4800, competition: 0.88 },
-          { keyword: "backlink checker", volume: 9200, competition: 0.86 },
-          { keyword: "free backlinks", volume: 7100, competition: 0.95 },
-          { keyword: "backlink builder", volume: 3100, competition: 0.89 },
-          { keyword: "backlink analysis", volume: 2800, competition: 0.84 }
-        ]
-      },
-      "keyword research": {
-        volume: 27500,
-        cpc: 14.25,
-        competition: 0.92,
-        trend: [2200, 2250, 2300, 2350, 2400, 2450, 2500, 2550, 2600, 2650, 2700, 2750],
-        related: [
-          { keyword: "keyword research tools", volume: 6800, competition: 0.87 },
-          { keyword: "keyword difficulty", volume: 3400, competition: 0.81 },
-          { keyword: "free keyword research", volume: 5100, competition: 0.93 },
-          { keyword: "keyword search volume", volume: 2700, competition: 0.79 },
-          { keyword: "long tail keywords", volume: 4900, competition: 0.85 }
-        ]
-      },
-      "meta tags": {
-        volume: 12500,
-        cpc: 8.30,
-        competition: 0.76,
-        trend: [1000, 1050, 1100, 1150, 1200, 1250, 1300, 1250, 1200, 1150, 1100, 1050],
-        related: [
-          { keyword: "meta description", volume: 4900, competition: 0.74 },
-          { keyword: "meta title", volume: 3800, competition: 0.72 },
-          { keyword: "meta keywords", volume: 5200, competition: 0.78 },
-          { keyword: "meta tags generator", volume: 2100, competition: 0.70 },
-          { keyword: "meta tags seo", volume: 1900, competition: 0.75 }
-        ]
+  function generateLocalBusinessSchema() {
+    return {
+      "@context": "https://schema.org",
+      "@type": "LocalBusiness",
+      "name": getFieldValue('name'),
+      "description": getFieldValue('description'),
+      "url": getFieldValue('url'),
+      "telephone": getFieldValue('telephone'),
+      "address": {
+        "@type": "PostalAddress",
+        "streetAddress": getFieldValue('address'),
+        "addressLocality": getFieldValue('city'),
+        "addressRegion": getFieldValue('state'),
+        "postalCode": getFieldValue('zipCode'),
+        "addressCountry": getFieldValue('country')
       }
     };
+  }
+  
+  function generateOrganizationSchema() {
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": getFieldValue('name'),
+      "url": getFieldValue('url')
+    };
     
-    // Search in our sample database
-    let keywordData = null;
+    if (getFieldValue('description')) {
+      schema.description = getFieldValue('description');
+    }
     
-    // Exact match
-    if (keywordDatabase[keyword]) {
-      keywordData = keywordDatabase[keyword];
-    } else {
-      // Try partial match
-      for (const key in keywordDatabase) {
-        if (key.includes(keyword) || keyword.includes(key)) {
-          keywordData = keywordDatabase[key];
+    if (getFieldValue('logo')) {
+      schema.logo = getFieldValue('logo');
+    }
+    
+    return schema;
+  }
+  
+  function generatePersonSchema() {
+    const schema = {
+      "@context": "https://schema.org",
+      "@type": "Person",
+      "name": getFieldValue('name')
+    };
+    
+    if (getFieldValue('jobTitle')) {
+      schema.jobTitle = getFieldValue('jobTitle');
+    }
+    
+    if (getFieldValue('telephone')) {
+      schema.telephone = getFieldValue('telephone');
+    }
+    
+    if (getFieldValue('email')) {
+      schema.email = getFieldValue('email');
+    }
+    
+    if (getFieldValue('url')) {
+      schema.url = getFieldValue('url');
+    }
+    
+    return schema;
+  }
+  
+  function generateProductSchema() {
+    return {
+      "@context": "https://schema.org",
+      "@type": "Product",
+      "name": getFieldValue('name'),
+      "description": getFieldValue('description'),
+      "image": getFieldValue('image') || undefined,
+      "brand": {
+        "@type": "Brand",
+        "name": getFieldValue('brand') || getFieldValue('name')
+      },
+      "offers": {
+        "@type": "Offer",
+        "price": getFieldValue('price'),
+        "priceCurrency": getFieldValue('priceCurrency')
+      }
+    };
+  }
+  
+  function generateEventSchema() {
+    return {
+      "@context": "https://schema.org",
+      "@type": "Event",
+      "name": getFieldValue('name'),
+      "description": getFieldValue('description'),
+      "startDate": getFieldValue('startDate'),
+      "endDate": getFieldValue('endDate') || undefined,
+      "location": {
+        "@type": "Place",
+        "name": getFieldValue('location'),
+        "address": getFieldValue('address')
+      }
+    };
+  }
+  
+  function generateArticleSchema() {
+    return {
+      "@context": "https://schema.org",
+      "@type": "Article",
+      "headline": getFieldValue('headline'),
+      "description": getFieldValue('description'),
+      "image": getFieldValue('image') || undefined,
+      "author": {
+        "@type": "Person",
+        "name": getFieldValue('authorName')
+      },
+      "datePublished": getFieldValue('publishDate'),
+      "publisher": {
+        "@type": "Organization",
+        "name": getFieldValue('publisher')
+      }
+    };
+  }
+  
+  function generateFAQSchema() {
+    const faqSchema = {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": []
+    };
+    
+    // Add questions and answers
+    for (let i = 1; i <= 3; i++) {
+      const question = getFieldValue(`question${i}`);
+      const answer = getFieldValue(`answer${i}`);
+      
+      if (question && answer) {
+        faqSchema.mainEntity.push({
+          "@type": "Question",
+          "name": question,
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": answer
+          }
+        });
+      }
+    }
+    
+    return faqSchema;
+  }
+  
+  function validateSchema(schema) {
+    const schemaInfoEl = document.getElementById('schema-info');
+    
+    // Basic validation
+    const validationResults = [];
+    
+    // Check for required context
+    if (!schema['@context'] || schema['@context'] !== 'https://schema.org') {
+      validationResults.push({type: 'error', message: 'Missing or invalid @context. Must be "https://schema.org".'});
+    }
+    
+    // Check for type
+    if (!schema['@type']) {
+      validationResults.push({type: 'error', message: 'Missing @type property.'});
+    }
+    
+    // Type-specific validation
+    const type = schema['@type'];
+    if (type) {
+      switch(type) {
+        case 'LocalBusiness':
+          if (!schema.name) validationResults.push({type: 'error', message: 'LocalBusiness requires a name property.'});
+          if (!schema.address) validationResults.push({type: 'error', message: 'LocalBusiness requires an address property.'});
+          break;
+        case 'Product':
+          if (!schema.name) validationResults.push({type: 'error', message: 'Product requires a name property.'});
+          if (!schema.offers) validationResults.push({type: 'error', message: 'Product should have an offers property.'});
+          else if (!schema.offers.price) validationResults.push({type: 'error', message: 'Product offers should include a price.'});
+          break;
+        case 'Article':
+          if (!schema.headline) validationResults.push({type: 'error', message: 'Article requires a headline property.'});
+          if (!schema.author) validationResults.push({type: 'error', message: 'Article should have an author property.'});
+          break;
+        // Add more type validations as needed
+      }
+    }
+    
+    // Display validation results
+    if (schemaInfoEl) {
+      if (validationResults.length === 0) {
+        schemaInfoEl.innerHTML = `
+          <div class="validation-success">
+            <p>✓ Schema validation passed! Your schema appears to be valid.</p>
+            <p>For comprehensive validation, use the <a href="https://search.google.com/test/rich-results" target="_blank">Google Rich Results Test</a>.</p>
+          </div>
+        `;
+      } else {
+        let validationHTML = `
+          <div class="validation-errors">
+            <p>Schema validation found ${validationResults.length} issue(s):</p>
+            <ul>
+        `;
+        
+        validationResults.forEach(result => {
+          validationHTML += `<li class="${result.type}">${result.message}</li>`;
+        });
+        
+        validationHTML += `
+            </ul>
+            <p>For comprehensive validation, use the <a href="https://search.google.com/test/rich-results" target="_blank">Google Rich Results Test</a>.</p>
+          </div>
+        `;
+        
+        schemaInfoEl.innerHTML = validationHTML;
+      }
+    }
+  }
+  
+  function showValidationError(errorMessage) {
+    const schemaInfoEl = document.getElementById('schema-info');
+    if (schemaInfoEl) {
+      schemaInfoEl.innerHTML = `
+        <div class="validation-errors">
+          <p>Schema validation error:</p>
+          <p class="error">${errorMessage}</p>
+        </div>
+      `;
+    }
+  }
+  
+  async function suggestSchemaFromContent(content) {
+    const schemaInfoEl = document.getElementById('schema-info');
+    
+    if (schemaInfoEl) {
+      schemaInfoEl.innerHTML = '<p>Analyzing content and generating suggestions...</p>';
+      
+      try {
+        // Here we'll use a language model to analyze the content and suggest schema types
+        const completion = await websim.chat.completions.create({
+          messages: [
+            {
+              role: "system",
+              content: `You are a specialized SEO assistant focused on schema.org markup. 
+              Analyze the provided content and suggest the most appropriate schema types and properties.
+              Focus on the main topics and entities in the content.
+              Respond directly with JSON, following this JSON schema, and no other text:
+              {
+                "recommendedType": string,
+                "reason": string,
+                "alternativeTypes": string[],
+                "suggestedProperties": string[]
+              }`
+            },
+            {
+              role: "user",
+              content: content
+            }
+          ],
+          json: true
+        });
+        
+        const result = JSON.parse(completion.content);
+        
+        // Display the suggestions
+        let suggestionsHTML = `
+          <div class="schema-suggestions">
+            <h4>Content Analysis Results</h4>
+            <p><strong>Recommended Schema Type:</strong> ${result.recommendedType}</p>
+            <p><strong>Reason:</strong> ${result.reason}</p>
+            
+            <p><strong>Alternative Schema Types:</strong></p>
+            <ul>
+              ${result.alternativeTypes.map(type => `<li>${type}</li>`).join('')}
+            </ul>
+            
+            <p><strong>Suggested Properties:</strong></p>
+            <ul>
+              ${result.suggestedProperties.map(prop => `<li>${prop}</li>`).join('')}
+            </ul>
+            
+            <button class="option-btn" id="apply-suggestion">Apply ${result.recommendedType} Schema</button>
+          </div>
+        `;
+        
+        schemaInfoEl.innerHTML = suggestionsHTML;
+        
+        // Add event listener for the apply button
+        const applyBtn = document.getElementById('apply-suggestion');
+        if (applyBtn) {
+          applyBtn.addEventListener('click', () => {
+            // Find and select the recommended schema type
+            const options = Array.from(schemaType.options);
+            const matchingOption = options.find(option => 
+              option.value === result.recommendedType || 
+              option.value.toLowerCase() === result.recommendedType.toLowerCase()
+            );
+            
+            if (matchingOption) {
+              schemaType.value = matchingOption.value;
+              // Trigger the change event to update fields
+              const event = new Event('change');
+              schemaType.dispatchEvent(event);
+            } else {
+              alert(`Schema type "${result.recommendedType}" is not available. Please select a schema type manually.`);
+            }
+          });
+        }
+        
+      } catch (error) {
+        console.error('Error analyzing content:', error);
+        schemaInfoEl.innerHTML = `
+          <div class="validation-errors">
+            <p>Error analyzing content:</p>
+            <p class="error">${error.message || 'Unknown error'}</p>
+          </div>
+        `;
+      }
+    }
+  }
+}
+
+// Keyword Database
+function initKeywordDatabase() {
+  const searchBtn = document.getElementById('search-keyword-btn');
+  const keywordInput = document.getElementById('keyword-search');
+  let keywordTrendChart = null;
+  
+  if (!searchBtn || !keywordInput) return;
+  
+  const mockKeywordData = {
+    'seo': {
+      volume: '165,000',
+      difficulty: 'High',
+      cpc: '$12.50',
+      related: ['seo tools', 'seo services', 'seo agency', 'search engine optimization'],
+      trend: [58, 62, 60, 65, 70, 68, 75, 80, 82, 85, 80, 78]
+    },
+    'content marketing': {
+      volume: '90,500',
+      difficulty: 'Medium',
+      cpc: '$8.30',
+      related: ['content strategy', 'content creation', 'content marketing services', 'digital marketing'],
+      trend: [50, 52, 55, 60, 65, 70, 72, 75, 70, 68, 66, 64]
+    },
+    'digital marketing': {
+      volume: '246,000',
+      difficulty: 'High',
+      cpc: '$15.20',
+      related: ['online marketing', 'social media marketing', 'internet marketing', 'digital advertising'],
+      trend: [65, 68, 70, 75, 80, 85, 82, 80, 78, 82, 85, 88]
+    },
+    'keyword research': {
+      volume: '74,000',
+      difficulty: 'Medium',
+      cpc: '$10.60',
+      related: ['keyword tools', 'seo keywords', 'keyword planner', 'keyword analysis'],
+      trend: [60, 62, 65, 68, 72, 75, 73, 70, 72, 75, 73, 70]
+    },
+    'link building': {
+      volume: '40,500',
+      difficulty: 'High',
+      cpc: '$14.30',
+      related: ['backlinks', 'quality links', 'link building services', 'link building strategies'],
+      trend: [45, 48, 50, 55, 58, 60, 62, 65, 63, 60, 58, 55]
+    }
+  };
+  
+  searchBtn.addEventListener('click', () => {
+    const keyword = keywordInput.value.toLowerCase().trim();
+    if (!keyword) return;
+    
+    // Search in mock data
+    let data = null;
+    
+    for (const key in mockKeywordData) {
+      if (key.includes(keyword) || keyword.includes(key)) {
+        data = mockKeywordData[key];
+        break;
+      }
+    }
+    
+    // If no exact match, find the first related keyword that matches
+    if (!data) {
+      for (const key in mockKeywordData) {
+        const related = mockKeywordData[key].related;
+        if (related.some(r => r.includes(keyword) || keyword.includes(r))) {
+          data = mockKeywordData[key];
           break;
         }
       }
-      
-      // Check related keywords
-      if (!keywordData) {
-        for (const key in keywordDatabase) {
-          const found = keywordDatabase[key].related.find(item => 
-            item.keyword.includes(keyword) || keyword.includes(item.keyword)
-          );
-          if (found) {
-            keywordData = {
-              volume: found.volume,
-              competition: found.competition,
-              cpc: keywordDatabase[key].cpc * (found.competition / keywordDatabase[key].competition),
-              trend: keywordDatabase[key].trend.map(val => Math.round(val * found.volume / keywordDatabase[key].volume)),
-              related: keywordDatabase[key].related
-            };
-            break;
-          }
-        }
-      }
     }
     
-    // Display results
-    if (keywordData) {
-      renderKeywordResults(keyword, keywordData);
-    } else {
-      document.getElementById('keyword-search-results').innerHTML = `
-        <div class="no-results">
-          <p>No data found for "${keyword}". Try another keyword or check your spelling.</p>
-          <p>Suggested keywords: seo, content marketing, backlinks, keyword research, meta tags</p>
+    // If still no match, use a default
+    if (!data) {
+      data = {
+        volume: 'No data',
+        difficulty: 'N/A',
+        cpc: 'N/A',
+        related: ['No related keywords found'],
+        trend: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+      };
+    }
+    
+    // Update UI
+    const keywordSearchResultsEl = document.getElementById('keyword-search-results');
+    const relatedKeywordsEl = document.getElementById('related-keywords');
+    const chartCanvas = document.getElementById('keywordTrendChart');
+    
+    if (keywordSearchResultsEl) {
+      keywordSearchResultsEl.innerHTML = `
+        <div class="keyword-header">
+          <h3>${keyword}</h3>
+        </div>
+        <div class="keyword-details">
+          <div class="detail-item">
+            <div class="detail-label">Search Volume</div>
+            <div class="detail-value">${data.volume}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Keyword Difficulty</div>
+            <div class="detail-value">${data.difficulty}</div>
+          </div>
+          <div class="detail-item">
+            <div class="detail-label">Cost Per Click</div>
+            <div class="detail-value">${data.cpc}</div>
+          </div>
         </div>
       `;
-      document.getElementById('related-keywords').innerHTML = '';
+    }
+    
+    if (relatedKeywordsEl) {
+      relatedKeywordsEl.innerHTML = `
+        <ul class="related-list">
+          ${data.related.map(rel => `<li>${rel}</li>`).join('')}
+        </ul>
+      `;
+    }
+    
+    // Create/update trend chart
+    if (chartCanvas) {
+      const ctx = chartCanvas.getContext('2d');
       
-      // Clear chart if exists
-      if (trendChart) {
-        trendChart.destroy();
-        trendChart = null;
+      if (keywordTrendChart) {
+        keywordTrendChart.destroy();
       }
-    }
-  }
-  
-  function renderKeywordResults(keyword, data) {
-    // Display keyword metrics
-    document.getElementById('keyword-search-results').innerHTML = `
-      <h3>Metrics for "${keyword}"</h3>
-      <div class="keyword-metrics">
-        <div class="metric-card">
-          <div class="label">Monthly Search Volume</div>
-          <div class="value">${data.volume.toLocaleString()}</div>
-        </div>
-        <div class="metric-card">
-          <div class="label">Cost Per Click</div>
-          <div class="value">$${typeof data.cpc === 'number' ? data.cpc.toFixed(2) : data.cpc}</div>
-        </div>
-        <div class="metric-card">
-          <div class="label">Competition</div>
-          <div class="value">
-            ${(data.competition * 100).toFixed(0)}%
-            <div class="difficulty-indicator">
-              <div class="difficulty-fill" style="width: ${data.competition * 100}%"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-    `;
-    
-    // Display related keywords
-    let relatedHtml = '';
-    if (data.related && data.related.length > 0) {
-      data.related.forEach(item => {
-        let competitionClass = '';
-        if (item.competition < 0.75) competitionClass = 'competition-low';
-        else if (item.competition < 0.9) competitionClass = 'competition-medium';
-        else competitionClass = 'competition-high';
-        
-        relatedHtml += `
-          <div class="related-keyword-item">
-            <span>${item.keyword}</span>
-            <span>
-              ${item.volume.toLocaleString()} searches
-              <div class="difficulty-indicator">
-                <div class="difficulty-fill ${competitionClass}"></div>
-              </div>
-            </span>
-          </div>
-        `;
-      });
-    } else {
-      relatedHtml = '<p>No related keywords found</p>';
-    }
-    
-    document.getElementById('related-keywords').innerHTML = relatedHtml;
-    
-    // Create trend chart
-    createTrendChart(data.trend);
-  }
-  
-  function createTrendChart(trendData) {
-    const ctx = document.getElementById('keywordTrendChart').getContext('2d');
-    
-    // Destroy previous chart if exists
-    if (trendChart) {
-      trendChart.destroy();
-    }
-    
-    // Create labels for last 12 months
-    const labels = [];
-    const currentDate = new Date();
-    for (let i = 11; i >= 0; i--) {
-      const date = new Date(currentDate);
-      date.setMonth(currentDate.getMonth() - i);
-      labels.push(date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }));
-    }
-    
-    trendChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [{
-          label: 'Search Volume',
-          data: trendData,
-          fill: true,
-          backgroundColor: 'rgba(37, 117, 252, 0.1)',
-          borderColor: 'rgba(37, 117, 252, 1)',
-          tension: 0.4
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          y: {
-            beginAtZero: false,
-            title: {
-              display: true,
-              text: 'Monthly Searches'
-            }
-          },
-          x: {
-            title: {
-              display: true,
-              text: 'Month'
+      
+      keywordTrendChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+          datasets: [{
+            label: 'Search Trend',
+            data: data.trend,
+            backgroundColor: 'rgba(74, 144, 226, 0.2)',
+            borderColor: 'rgba(74, 144, 226, 1)',
+            borderWidth: 2,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100,
+              title: {
+                display: true,
+                text: 'Interest Over Time (0-100)'
+              }
+            },
+            x: {
+              ticks: {
+                autoSkip: true,
+                maxRotation: 0
+              }
             }
           }
         }
-      }
-    });
-  }
-  
-  // Initialize with an example search
-  setTimeout(() => {
-    if (document.querySelector('.nav-btn[data-tool="keyword-database"]').classList.contains('active')) {
-      keywordInput.value = "seo";
-      searchKeyword();
+      });
     }
-  }, 100);
+  });
 }
 
-// Sentiment Analysis Tool
-function setupSentimentAnalysis() {
-  const optionButtons = document.querySelectorAll('.option-btn');
+// Sentiment Analysis
+function initSentimentAnalysis() {
+  const optionBtns = document.querySelectorAll('.option-btn');
   const inputAreas = document.querySelectorAll('.input-area');
   const analyzeBtn = document.getElementById('analyze-sentiment-btn');
-  const fileUpload = document.getElementById('document-upload');
-  const fileName = document.getElementById('file-name');
+  const fileInput = document.getElementById('document-upload');
+  const fileNameDisplay = document.getElementById('file-name');
   
-  // Switch between input options
-  optionButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      // Update active button
-      optionButtons.forEach(btn => btn.classList.remove('active'));
-      button.classList.add('active');
+  if (!optionBtns.length || !inputAreas.length || !analyzeBtn || !fileInput || !fileNameDisplay) return;
+  
+  let conversationHistory = [];
+  
+  // Toggle between input methods
+  optionBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      const source = btn.getAttribute('data-source');
       
-      // Show selected input area
-      const sourceType = button.dataset.source;
-      inputAreas.forEach(area => {
-        area.classList.add('hidden');
-        if (area.id === sourceType + '-content') {
-          area.classList.remove('hidden');
-        }
-      });
+      // Update active button
+      optionBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      
+      // Show/hide appropriate input area
+      inputAreas.forEach(area => area.classList.add('hidden'));
+      const sourceContentEl = document.getElementById(`${source}-content`);
+      if (sourceContentEl) {
+        sourceContentEl.classList.remove('hidden');
+      }
     });
   });
   
-  // Display selected file name
-  fileUpload.addEventListener('change', (e) => {
+  // Display filename when file is selected
+  fileInput.addEventListener('change', (e) => {
     if (e.target.files.length > 0) {
-      fileName.textContent = e.target.files[0].name;
+      fileNameDisplay.textContent = e.target.files[0].name;
     } else {
-      fileName.textContent = '';
+      fileNameDisplay.textContent = '';
     }
   });
   
   // Analyze sentiment
   analyzeBtn.addEventListener('click', async () => {
-    // Determine which input method is active
-    const activeButton = document.querySelector('.option-btn.active');
-    const sourceType = activeButton.dataset.source;
-    
     let content = '';
-    let sourceUrl = '';
     
-    try {
-      // Show loading state
-      document.getElementById('sentiment-results').innerHTML = `
-        <div class="loading-indicator">
-          <div class="spinner"></div>
-          <p>Analyzing content...</p>
-        </div>
-      `;
-      document.getElementById('heading-analysis').innerHTML = '';
-      document.getElementById('context-analysis').innerHTML = '';
-      document.getElementById('keyword-relevance').innerHTML = '';
-      
-      // Get content based on input method
-      if (sourceType === 'paste') {
-        content = document.getElementById('sentiment-content').value.trim();
-        if (!content) {
-          throw new Error('Please enter some content to analyze');
-        }
-        
-        // Analyze the pasted content directly
-        await analyzeSentiment(content);
-        
-      } else if (sourceType === 'url') {
-        sourceUrl = document.getElementById('sentiment-url').value.trim();
-        if (!sourceUrl) {
-          throw new Error('Please enter a URL to analyze');
-        }
-        
-        // Fetch and analyze content from the URL
+    // Get active input method
+    const activeOption = document.querySelector('.option-btn.active');
+    if (!activeOption) return;
+    
+    const source = activeOption.getAttribute('data-source');
+    
+    // Get content based on input method
+    if (source === 'paste') {
+      const contentEl = document.getElementById('sentiment-content');
+      content = contentEl ? contentEl.value : '';
+    } else if (source === 'url') {
+      const urlEl = document.getElementById('sentiment-url');
+      content = urlEl ? urlEl.value : '';
+      // In a real app, this would fetch the URL content
+      content = `This is simulated content from the URL: ${content}. Since this is a demo, we'll analyze the URL itself.`;
+    } else if (source === 'file') {
+      if (fileInput.files.length > 0) {
+        // Read file content
         try {
-          // Use a CORS proxy to fetch the URL content
-          const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(sourceUrl)}`;
-          const response = await fetch(proxyUrl);
-          
-          if (!response.ok) {
-            throw new Error('Failed to fetch URL content');
-          }
-          
-          const html = await response.text();
-          
-          // Extract text content from HTML
-          const parser = new DOMParser();
-          const doc = parser.parseFromString(html, 'text/html');
-          
-          // Remove scripts and styles
-          const scripts = doc.querySelectorAll('script, style, nav, footer, header, aside');
-          scripts.forEach(el => el.remove());
-          
-          // Preserve the HTML structure for heading analysis
-          content = doc.body.innerHTML;
-          
-          // Analyze the extracted content
-          await analyzeSentiment(content, sourceUrl);
-          
+          const file = fileInput.files[0];
+          const reader = new FileReader();
+          content = await new Promise((resolve, reject) => {
+            reader.onload = (e) => resolve(e.target.result);
+            reader.onerror = (e) => reject(e);
+            reader.readAsText(file);
+          });
         } catch (error) {
-          console.error('URL fetch error:', error);
-          throw new Error(`Failed to fetch content from URL: ${error.message}`);
+          alert('Error reading file: ' + error.message);
+          return;
         }
-        
-      } else if (sourceType === 'file') {
-        const file = fileUpload.files[0];
-        if (!file) {
-          throw new Error('Please select a file to analyze');
-        }
-        
-        // Read and analyze the uploaded document
-        try {
-          content = await readFileContent(file);
-          await analyzeSentiment(content, file.name);
-        } catch (error) {
-          console.error('File reading error:', error);
-          throw new Error(`Failed to read file: ${error.message}`);
-        }
-      }
-      
-    } catch (error) {
-      console.error('Analysis error:', error);
-      document.getElementById('sentiment-results').innerHTML = `
-        <div class="error-message">
-          <p>Error: ${error.message}</p>
-        </div>
-      `;
-    }
-  });
-  
-  // Function to read file content
-  function readFileContent(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      
-      reader.onload = function(e) {
-        try {
-          let content = e.target.result;
-          
-          // For .txt files, we can use the content directly
-          if (file.type === 'text/plain') {
-            resolve(content);
-          }
-          // For .docx and .pdf, we would need specialized libraries
-          // For now, we'll just handle plain text
-          else {
-            reject(new Error('File type not supported. Please use .txt files or paste content directly.'));
-          }
-        } catch (error) {
-          reject(error);
-        }
-      };
-      
-      reader.onerror = function() {
-        reject(new Error('Error reading file'));
-      };
-      
-      reader.readAsText(file);
-    });
-  }
-  
-  // Main sentiment analysis function
-  async function analyzeSentiment(content, source = '') {
-    try {
-      // 1. Extract text if content is HTML
-      const isHtml = content.includes('<') && content.includes('>');
-      let textContent = content;
-      let htmlContent = isHtml ? content : '';
-      
-      if (isHtml) {
-        const parser = new DOMParser();
-        const doc = parser.parseFromString(content, 'text/html');
-        textContent = doc.body.textContent;
       } else {
-        // If plain text, create simple HTML for headings analysis
-        htmlContent = `<div>${content.split('\n\n').map(p => `<p>${p}</p>`).join('')}</div>`;
-      }
-      
-      // 2. Calculate sentiment scores
-      const sentimentScores = calculateSentiment(textContent);
-      
-      // 3. Analyze headings
-      const headingAnalysis = analyzeHeadings(htmlContent);
-      
-      // 4. Identify main context
-      const contextAnalysis = identifyContext(textContent);
-      
-      // 5. Calculate keyword relevance
-      const keywordRelevance = calculateKeywordRelevance(textContent, htmlContent, contextAnalysis.primaryKeyword);
-      
-      // Display results
-      displaySentimentResults(sentimentScores);
-      displayHeadingAnalysis(headingAnalysis);
-      displayContextAnalysis(contextAnalysis);
-      displayKeywordRelevance(keywordRelevance);
-      
-    } catch (error) {
-      console.error('Sentiment analysis error:', error);
-      throw error;
-    }
-  }
-  
-  // Calculate sentiment scores
-  function calculateSentiment(content) {
-    // Word lists for sentiment analysis
-    const positiveWords = [
-      'good', 'great', 'excellent', 'positive', 'wonderful', 'fantastic',
-      'amazing', 'happy', 'joy', 'successful', 'beneficial', 'improvement',
-      'progress', 'growth', 'opportunity', 'solution', 'advantage', 'effective',
-      'right', 'perfect', 'best', 'better', 'success', 'easy', 'recommend',
-      'love', 'like', 'enjoy', 'impressive', 'innovative', 'efficient', 'helpful',
-      'valuable', 'useful', 'beautiful', 'strong', 'gain', 'support', 'quality',
-      'profit', 'bonus', 'achievement', 'accomplish', 'ideal', 'win', 'winning',
-      'congratulation', 'achievement', 'celebrate', 'prosperity', 'satisfied'
-    ];
-    
-    const negativeWords = [
-      'bad', 'poor', 'terrible', 'negative', 'horrible', 'awful',
-      'disappointing', 'sad', 'unhappy', 'failure', 'problem', 'issue',
-      'challenge', 'risk', 'threat', 'difficult', 'trouble', 'crisis',
-      'wrong', 'worst', 'worse', 'fail', 'hard', 'avoid',
-      'hate', 'dislike', 'annoying', 'inefficient', 'useless', 'inadequate',
-      'ugly', 'weak', 'loss', 'oppose', 'poor', 'cheap', 'damage',
-      'lose', 'losing', 'complaint', 'disappoint', 'unfortunate', 'regret',
-      'sorry', 'fear', 'worry', 'concern', 'anxious', 'angry', 'frustrated'
-    ];
-    
-    // Intensity modifiers
-    const intensifiers = {
-      'very': 1.5,
-      'extremely': 2,
-      'highly': 1.5,
-      'remarkably': 1.8,
-      'incredibly': 1.8,
-      'absolutely': 1.9,
-      'completely': 1.6,
-      'totally': 1.6,
-      'utterly': 1.8,
-      'really': 1.4,
-      'genuinely': 1.3,
-      'especially': 1.4,
-      'particularly': 1.4,
-      'exceptionally': 1.7,
-      'immensely': 1.7,
-      'deeply': 1.5,
-      'profoundly': 1.7,
-      'terribly': 1.6,
-      'seriously': 1.4,
-      'quite': 1.2,
-      'rather': 1.1
-    };
-    
-    // Negation words
-    const negations = [
-      'not', 'no', 'never', 'neither', 'nor', 'none', 'nothing', 'nowhere',
-      'hardly', 'scarcely', 'barely', 'doesn\'t', 'don\'t', 'didn\'t', 'isn\'t',
-      'aren\'t', 'wasn\'t', 'weren\'t', 'haven\'t', 'hasn\'t', 'hadn\'t',
-      'won\'t', 'wouldn\'t', 'can\'t', 'cannot', 'couldn\'t', 'shouldn\'t'
-    ];
-    
-    // Process the text
-    const sentences = content.replace(/([.!?])\s*(?=[A-Z])/g, "$1|").split("|");
-    const words = content.toLowerCase().match(/\b\w+\b/g) || [];
-    
-    let positiveScore = 0;
-    let negativeScore = 0;
-    let neutralWords = 0;
-    
-    // Calculate sentence-level sentiment
-    sentences.forEach(sentence => {
-      const sentenceWords = sentence.toLowerCase().match(/\b\w+\b/g) || [];
-      let sentencePositive = 0;
-      let sentenceNegative = 0;
-      let hasNegation = false;
-      let currentIntensifier = 1;
-      
-      for (let i = 0; i < sentenceWords.length; i++) {
-        const word = sentenceWords[i];
-        
-        // Check for negations
-        if (negations.includes(word)) {
-          hasNegation = true;
-          continue;
-        }
-        
-        // Check for intensifiers
-        if (intensifiers[word]) {
-          currentIntensifier = intensifiers[word];
-          continue;
-        }
-        
-        // Check sentiment
-        if (positiveWords.includes(word)) {
-          if (hasNegation) {
-            sentenceNegative += currentIntensifier;
-          } else {
-            sentencePositive += currentIntensifier;
-          }
-          hasNegation = false;
-          currentIntensifier = 1;
-        } 
-        else if (negativeWords.includes(word)) {
-          if (hasNegation) {
-            sentencePositive += currentIntensifier;
-          } else {
-            sentenceNegative += currentIntensifier;
-          }
-          hasNegation = false;
-          currentIntensifier = 1;
-        }
-        else {
-          // For words not in our sentiment lists
-          neutralWords++;
-        }
-      }
-      
-      positiveScore += sentencePositive;
-      negativeScore += sentenceNegative;
-    });
-    
-    // Normalize scores
-    const totalSentimentScore = positiveScore + negativeScore;
-    const sentimentTotal = words.length || 1; // Ensure we don't divide by zero
-    
-    // Calculate percentages
-    const positivePercent = (positiveScore / sentimentTotal * 100).toFixed(1);
-    const negativePercent = (negativeScore / sentimentTotal * 100).toFixed(1);
-    const neutralPercent = (100 - parseFloat(positivePercent) - parseFloat(negativePercent)).toFixed(1);
-    
-    // Calculate overall sentiment score (-1 to 1)
-    let overallScore = 0;
-    if (totalSentimentScore > 0) {
-      overallScore = ((positiveScore - negativeScore) / (positiveScore + negativeScore)).toFixed(2);
-    }
-    
-    // Determine sentiment category
-    let sentimentCategory = 'Neutral';
-    if (overallScore > 0.25) sentimentCategory = 'Positive';
-    else if (overallScore < -0.25) sentimentCategory = 'Negative';
-    else sentimentCategory = 'Neutral';
-    
-    return {
-      overall: overallScore,
-      category: sentimentCategory,
-      positive: positivePercent,
-      negative: negativePercent,
-      neutral: neutralPercent
-    };
-  }
-  
-  // Analyze headings structure
-  function analyzeHeadings(content) {
-    // Parse HTML
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(content, 'text/html');
-    
-    // Extract all headings
-    const h1Elements = Array.from(doc.querySelectorAll('h1'));
-    const h2Elements = Array.from(doc.querySelectorAll('h2'));
-    const h3Elements = Array.from(doc.querySelectorAll('h3'));
-    const h4Elements = Array.from(doc.querySelectorAll('h4'));
-    const h5Elements = Array.from(doc.querySelectorAll('h5'));
-    const h6Elements = Array.from(doc.querySelectorAll('h6'));
-    
-    // Combine and sort by document position
-    let allHeadings = [
-      ...h1Elements, ...h2Elements, ...h3Elements,
-      ...h4Elements, ...h5Elements, ...h6Elements
-    ];
-    
-    // Sort headings by their position in the document
-    allHeadings.sort((a, b) => {
-      const position = a.compareDocumentPosition(b);
-      return position & Node.DOCUMENT_POSITION_FOLLOWING ? -1 : 1;
-    });
-    
-    // Convert to our heading format
-    const headings = allHeadings.map(el => ({
-      level: parseInt(el.tagName.substring(1)),
-      text: el.textContent.trim()
-    }));
-    
-    // If no HTML headings found, try to identify headings based on text formatting
-    if (headings.length === 0 && doc.body.textContent) {
-      const lines = doc.body.textContent.split('\n').map(line => line.trim()).filter(line => line);
-      
-      for (let i = 0; i < lines.length; i++) {
-        const line = lines[i];
-        
-        // Simple heuristic: short lines followed by longer content are likely headings
-        if (line.length > 0 && line.length < 100 && 
-            (i === lines.length - 1 || lines[i+1].length > line.length || 
-             line.endsWith(':') || line.endsWith('?'))) {
-          
-          // Determine heading level based on position and content
-          let level = 3; // Default to h3
-          
-          if (i === 0 || (i > 0 && lines[i-1].length === 0)) {
-            level = 1; // First line or line after blank line is likely h1
-          } else if (line.length < 50) {
-            level = 2; // Short line is likely h2
-          }
-          
-          // Ignore lines with less than 3 characters
-          if (line.length >= 3) {
-            headings.push({ level, text: line });
-          }
-        }
+        alert('Please select a file to analyze.');
+        return;
       }
     }
     
-    // Count headings by level
-    const counts = {
-      h1: headings.filter(h => h.level === 1).length,
-      h2: headings.filter(h => h.level === 2).length,
-      h3: headings.filter(h => h.level === 3).length,
-      h4: headings.filter(h => h.level === 4).length,
-      h5: headings.filter(h => h.level === 5).length,
-      h6: headings.filter(h => h.level === 6).length
-    };
-    
-    // Check if heading structure is proper (sequential)
-    const isSequential = checkHeadingSequence(headings);
-    
-    return {
-      headings,
-      counts,
-      total: headings.length,
-      hasProperStructure: counts.h1 > 0 && counts.h1 <= 1 && isSequential
-    };
-  }
-  
-  // Check if headings follow a proper sequence
-  function checkHeadingSequence(headings) {
-    if (headings.length < 2) return true;
-    
-    let prevLevel = 0;
-    
-    for (const heading of headings) {
-      const level = heading.level;
-      
-      // First heading can be any level
-      if (prevLevel === 0) {
-        prevLevel = level;
-        continue;
-      }
-      
-      // Check if heading level jumps by more than 1
-      if (level > prevLevel + 1) {
-        return false;
-      }
-      
-      prevLevel = level;
-    }
-    
-    return true;
-  }
-  
-  // Identify content context and primary keyword
-  function identifyContext(content) {
-    // Define common stopwords to exclude
-    const stopwords = new Set([
-      'a', 'an', 'the', 'and', 'or', 'but', 'is', 'are', 'was', 'were', 
-      'be', 'have', 'has', 'had', 'do', 'does', 'did', 'to', 'at', 'in',
-      'on', 'for', 'with', 'by', 'about', 'as', 'of', 'from', 'this', 'that',
-      'these', 'those', 'it', 'its', 'they', 'them', 'their', 'we', 'our', 'us',
-      'will', 'would', 'should', 'can', 'could', 'may', 'might', 'such', 'when',
-      'what', 'who', 'how', 'where', 'why', 'which', 'if', 'then', 'than'
-    ]);
-    
-    // Extract and count words, excluding stopwords
-    const words = content.toLowerCase().match(/\b[a-z]{3,}\b/g) || [];
-    const wordFreq = {};
-    
-    words.forEach(word => {
-      if (stopwords.has(word)) return;
-      wordFreq[word] = (wordFreq[word] || 0) + 1;
-    });
-    
-    // Find word pairs (bigrams)
-    const bigrams = [];
-    for (let i = 0; i < words.length - 1; i++) {
-      if (!stopwords.has(words[i]) && !stopwords.has(words[i+1])) {
-        const bigram = words[i] + ' ' + words[i+1];
-        bigrams.push(bigram);
-      }
-    }
-    
-    // Count bigram frequencies
-    const bigramFreq = {};
-    bigrams.forEach(bigram => {
-      bigramFreq[bigram] = (bigramFreq[bigram] || 0) + 1;
-    });
-    
-    // Sort words by frequency
-    const sortedWords = Object.entries(wordFreq)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 15);
-    
-    // Sort bigrams by frequency (need at least 2 occurrences)
-    const sortedBigrams = Object.entries(bigramFreq)
-      .filter(([_, count]) => count > 1)
-      .sort((a, b) => b[1] - a[1])
-      .slice(0, 5);
-    
-    // Extract top keywords
-    const topKeywords = sortedWords.map(([word, count]) => ({
-      word,
-      count,
-      frequency: ((count / words.length) * 100).toFixed(1) + '%'
-    }));
-    
-    // Extract top bigrams
-    const topBigrams = sortedBigrams.map(([phrase, count]) => ({
-      word: phrase,
-      count,
-      frequency: ((count / bigrams.length) * 100).toFixed(1) + '%'
-    }));
-    
-    // Determine primary keyword
-    let primaryKeyword = '';
-    
-    // If we have bigrams with high frequency, use the most frequent
-    if (topBigrams.length > 0 && topBigrams[0].count > 2) {
-      primaryKeyword = topBigrams[0].word;
-    } 
-    // Otherwise use the most frequent single word
-    else if (topKeywords.length > 0) {
-      primaryKeyword = topKeywords[0].word;
-    }
-    
-    // Determine content context based on keywords
-    const contextKeywords = {
-      business: ['market', 'business', 'company', 'industry', 'economic', 'financial', 'strategy', 'growth',
-                'sales', 'revenue', 'profit', 'customer', 'service', 'product', 'management'],
-      technology: ['technology', 'digital', 'software', 'data', 'innovation', 'tech', 'computer', 'online',
-                  'device', 'internet', 'app', 'application', 'system', 'network', 'code', 'developer'],
-      health: ['health', 'medical', 'healthcare', 'patient', 'treatment', 'disease', 'doctor', 'wellness',
-              'hospital', 'clinic', 'medicine', 'therapy', 'diet', 'exercise', 'symptom', 'diagnosis'],
-      education: ['education', 'learning', 'student', 'school', 'teacher', 'academic', 'course', 'training',
-                'university', 'college', 'degree', 'study', 'knowledge', 'teaching', 'curriculum', 'classroom'],
-      environment: ['environment', 'climate', 'sustainable', 'energy', 'green', 'nature', 'pollution', 'conservation',
-                  'environmental', 'renewable', 'sustainability', 'eco', 'planet', 'earth', 'recycle', 'waste'],
-      politics: ['political', 'government', 'policy', 'election', 'democracy', 'law', 'rights', 'social',
-               'president', 'minister', 'vote', 'party', 'legislation', 'reform', 'congress', 'regulation'],
-      lifestyle: ['lifestyle', 'food', 'travel', 'fashion', 'home', 'family', 'personal', 'hobby',
-                'entertainment', 'leisure', 'design', 'art', 'culture', 'recipe', 'vacation', 'decoration'],
-      science: ['science', 'research', 'scientific', 'study', 'experiment', 'theory', 'discovery', 'physics',
-               'chemistry', 'biology', 'laboratory', 'scientist', 'analysis', 'evidence', 'hypothesis']
-    };
-    
-    // Score content against each context
-    const contextScores = {};
-    
-    for (const [context, keywords] of Object.entries(contextKeywords)) {
-      contextScores[context] = 0;
-      
-      // Check single words
-      topKeywords.forEach(({ word, count }) => {
-        if (keywords.includes(word)) {
-          contextScores[context] += count;
-        } else {
-          // Check partial matches
-          for (const keyword of keywords) {
-            if (word.includes(keyword) || keyword.includes(word)) {
-              contextScores[context] += count * 0.5;
-              break;
-            }
-          }
-        }
-      });
-      
-      // Check bigrams
-      topBigrams.forEach(({ word, count }) => {
-        const bigramWords = word.split(' ');
-        for (const bigramWord of bigramWords) {
-          if (keywords.includes(bigramWord)) {
-            contextScores[context] += count * 1.5; // Give higher weight to bigram matches
-            break;
-          }
-        }
-      });
-    }
-    
-    // Find top context
-    const topContextEntries = Object.entries(contextScores)
-      .sort((a, b) => b[1] - a[1]);
-    
-    const topContext = topContextEntries[0][0];
-    const topScore = topContextEntries[0][1];
-    
-    // Check if we have a strong context signal or mixed contexts
-    const secondScore = topContextEntries.length > 1 ? topContextEntries[1][1] : 0;
-    const isStrongContext = topScore > 0 && topScore > secondScore * 1.5;
-    
-    return {
-      topKeywords: [...topKeywords.slice(0, 10), ...topBigrams],
-      primaryKeyword,
-      context: topContext,
-      contextScore: topScore,
-      isStrongContext
-    };
-  }
-  
-  // Calculate keyword relevance score
-  function calculateKeywordRelevance(textContent, htmlContent, keyword) {
-    if (!keyword) return { score: 0, keyword: '', occurrences: 0 };
-    
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(htmlContent, 'text/html');
-    
-    const words = textContent.toLowerCase().match(/\b\w+\b/g) || [];
-    const totalWords = words.length;
-    
-    // Count keyword occurrences
-    const keywordRegex = new RegExp(`\\b${keyword.replace(/\s+/g, '\\s+')}\\b`, 'gi');
-    const occurrences = (textContent.match(keywordRegex) || []).length;
-    
-    // Check for keyword in headings (higher weight)
-    const headings = doc.querySelectorAll('h1, h2, h3, h4, h5, h6');
-    
-    let headingMatches = 0;
-    let h1Match = false;
-    let h2Match = false;
-    
-    headings.forEach(heading => {
-      if (heading.textContent.toLowerCase().includes(keyword)) {
-        headingMatches++;
-        
-        if (heading.tagName === 'H1') {
-          h1Match = true;
-        } else if (heading.tagName === 'H2') {
-          h2Match = true;
-        }
-      }
-    });
-    
-    // Check for keyword in important elements
-    const titleMatch = doc.querySelector('title')?.textContent.toLowerCase().includes(keyword) || false;
-    
-    // Check for keyword in first 100 words (higher weight)
-    const firstWords = words.slice(0, 100).join(' ');
-    const inFirstWords = firstWords.includes(keyword);
-    
-    // Check for keyword in URL (if source is a URL)
-    const urlElement = doc.querySelector('meta[property="og:url"]');
-    const url = urlElement ? urlElement.getAttribute('content') : '';
-    const inUrl = url && url.toLowerCase().includes(keyword.replace(/\s+/g, '-'));
-    
-    // Check keyword density
-    const keywordDensity = totalWords > 0 ? occurrences / totalWords : 0;
-    
-    // Calculate relevance score (0-100)
-    let relevanceScore = 0;
-    
-    // Base score from density (max 40 points)
-    // Optimal density is 1-3%
-    let densityScore = 0;
-    if (keywordDensity > 0 && keywordDensity <= 0.03) {
-      densityScore = Math.min(40, 40 * (keywordDensity / 0.02));
-    } else if (keywordDensity > 0.03) {
-      // Penalize for keyword stuffing
-      densityScore = Math.max(0, 40 - ((keywordDensity - 0.03) * 200));
-    }
-    
-    // Heading bonus (max 30 points)
-    let headingScore = 0;
-    if (h1Match) headingScore += 15;
-    if (h2Match) headingScore += 10;
-    headingScore += Math.min(5, (headingMatches - 2) * 2.5); // Additional heading matches
-    
-    // Title match bonus (10 points)
-    const titleScore = titleMatch ? 10 : 0;
-    
-    // First paragraph bonus (10 points)
-    const firstContentScore = inFirstWords ? 10 : 0;
-    
-    // URL bonus (10 points)
-    const urlScore = inUrl ? 10 : 0;
-    
-    // Combine scores
-    relevanceScore = Math.round(densityScore + headingScore + titleScore + firstContentScore + urlScore);
-    
-    // Ensure score is between 0-100
-    relevanceScore = Math.max(0, Math.min(100, relevanceScore));
-    
-    return {
-      score: relevanceScore,
-      keyword,
-      occurrences,
-      density: (keywordDensity * 100).toFixed(2) + '%',
-      inHeadings: headingMatches > 0,
-      inH1: h1Match,
-      inFirstWords,
-      inTitle: titleMatch,
-      inUrl
-    };
-  }
-  
-  // Display sentiment results
-  function displaySentimentResults(sentimentScores) {
-    document.getElementById('sentiment-results').innerHTML = `
-      <h3>Sentiment Analysis Results</h3>
-      <div class="sentiment-score">
-        <div class="label">Overall Sentiment:</div>
-        <div class="score">${sentimentScores.overall}</div>
-      </div>
-      <div class="sentiment-score">
-        <div class="label">Sentiment Category:</div>
-        <div class="score">${sentimentScores.category}</div>
-      </div>
-      <div class="sentiment-score">
-        <div class="label">Positive Sentiment:</div>
-        <div class="score">${sentimentScores.positive}%</div>
-      </div>
-      <div class="sentiment-score">
-        <div class="label">Negative Sentiment:</div>
-        <div class="score">${sentimentScores.negative}%</div>
-      </div>
-      <div class="sentiment-score">
-        <div class="label">Neutral Sentiment:</div>
-        <div class="score">${sentimentScores.neutral}%</div>
-      </div>
-    `;
-  }
-  
-  // Display heading analysis results
-  function displayHeadingAnalysis(headingAnalysis) {
-    const headingResults = document.getElementById('heading-analysis');
-    
-    if (headingAnalysis.total === 0) {
-      headingResults.innerHTML = '<p>No headings found in the content.</p>';
-    } else {
-      headingResults.innerHTML = `
-        <h3>Heading Analysis Results</h3>
-        <p>Total Headings: ${headingAnalysis.total}</p>
-        <p>Heading Structure: ${headingAnalysis.hasProperStructure ? 'Proper' : 'Improper'}</p>
-        <ul>
-          ${Object.keys(headingAnalysis.counts).map(level => `<li>${level}: ${headingAnalysis.counts[level]}</li>`).join('')}
-        </ul>
-      `;
-    }
-  }
-  
-  // Display context analysis results
-  function displayContextAnalysis(contextAnalysis) {
-    const contextResults = document.getElementById('context-analysis');
-    
-    contextResults.innerHTML = `
-      <h3>Context Analysis Results</h3>
-      <p>Primary Keyword: ${contextAnalysis.primaryKeyword}</p>
-      <p>Context: ${contextAnalysis.context}</p>
-      <p>Top Keywords:</p>
-      <ul>
-        ${contextAnalysis.topKeywords.map(keyword => `<li>${keyword.word} (${keyword.count} occurrences, ${keyword.frequency})</li>`).join('')}
-      </ul>
-    `;
-  }
-  
-  // Display keyword relevance score
-  function displayKeywordRelevance(keywordRelevance) {
-    const relevanceElement = document.getElementById('keyword-relevance');
-    
-    if (!keywordRelevance || !keywordRelevance.keyword) {
-      relevanceElement.innerHTML = `<p>No primary keyword detected</p>`;
+    if (!content) {
+      alert('Please provide content to analyze.');
       return;
     }
     
-    const score = keywordRelevance.score;
-    const percentage = score > 0 ? score : 0; // Ensure we don't have negative percentages
+    // Perform actual sentiment analysis using AI
+    try {
+      const completion = await websim.chat.completions.create({
+        messages: [
+          {
+            role: "system",
+            content: `You are a sentiment and content analysis expert. Analyze the provided text and determine its sentiment and content characteristics.
+            Respond directly with JSON, following this JSON schema, and no other text:
+            {
+              "overallSentiment": number, // value between -1 (very negative) and 1 (very positive)
+              "sentimentBreakdown": {
+                "positive": number, // percentage (0-100)
+                "negative": number, // percentage (0-100)
+                "neutral": number // percentage (0-100)
+              },
+              "contentAnalysis": {
+                "estimatedHeadings": number,
+                "estimatedParagraphs": number,
+                "estimatedSentences": number,
+                "topTopics": string[], // 3 likely topics of the content
+                "topKeywords": [
+                  {"term": string, "relevance": string, "density": string}
+                  // 3 objects with these properties
+                ]
+              }
+            }`
+          },
+          {
+            role: "user",
+            content: content
+          }
+        ],
+        json: true
+      });
+      
+      const result = JSON.parse(completion.content);
+      
+      // Update sentiment meter
+      const sentimentFillEl = document.querySelector('.sentiment-fill');
+      const sentimentValueEl = document.querySelector('.sentiment-value');
+      const positiveScoreEl = document.getElementById('positive-score');
+      const negativeScoreEl = document.getElementById('negative-score');
+      const neutralScoreEl = document.getElementById('neutral-score');
+      const headingAnalysisEl = document.getElementById('heading-analysis');
+      const contextAnalysisEl = document.getElementById('context-analysis');
+      const keywordRelevanceEl = document.getElementById('keyword-relevance');
+      
+      // Convert sentiment score (-1 to 1) to percentage (0-100)
+      const normalizedScore = ((result.overallSentiment + 1) / 2) * 100;
+      
+      if (sentimentFillEl) {
+        sentimentFillEl.style.width = `${normalizedScore}%`;
+      }
+      
+      let sentimentText = 'Neutral';
+      if (result.overallSentiment > 0.3) sentimentText = 'Positive';
+      if (result.overallSentiment < -0.3) sentimentText = 'Negative';
+      
+      if (sentimentValueEl) {
+        sentimentValueEl.textContent = `${sentimentText} (${result.overallSentiment.toFixed(2)})`;
+      }
+      
+      // Update sentiment breakdown
+      if (positiveScoreEl) positiveScoreEl.textContent = `${result.sentimentBreakdown.positive.toFixed(1)}%`;
+      if (negativeScoreEl) negativeScoreEl.textContent = `${result.sentimentBreakdown.negative.toFixed(1)}%`;
+      if (neutralScoreEl) neutralScoreEl.textContent = `${result.sentimentBreakdown.neutral.toFixed(1)}%`;
+      
+      // Update heading structure analysis
+      if (headingAnalysisEl) {
+        headingAnalysisEl.innerHTML = `
+          <p>Content appears to be ${content.length > 500 ? 'well-structured' : 'too short for proper structure'}.</p>
+          <ul>
+            <li>Estimated headings: ${result.contentAnalysis.estimatedHeadings}</li>
+            <li>Paragraph count: ${result.contentAnalysis.estimatedParagraphs}</li>
+            <li>Sentences: ${result.contentAnalysis.estimatedSentences}</li>
+          </ul>
+        `;
+      }
+      
+      // Update context analysis
+      if (contextAnalysisEl) {
+        contextAnalysisEl.innerHTML = `
+          <p>The content appears to be about:</p>
+          <ul>
+            ${result.contentAnalysis.topTopics.map(topic => `<li>${topic}</li>`).join('')}
+          </ul>
+        `;
+      }
+      
+      // Update keyword relevance
+      if (keywordRelevanceEl) {
+        keywordRelevanceEl.innerHTML = `
+          <table>
+            <tr>
+              <th>Keyword</th>
+              <th>Relevance</th>
+              <th>Density</th>
+            </tr>
+            ${result.contentAnalysis.topKeywords.map(kw => `
+              <tr>
+                <td>${kw.term}</td>
+                <td>${kw.relevance}</td>
+                <td>${kw.density}</td>
+              </tr>
+            `).join('')}
+          </table>
+        `;
+      }
+    } catch (error) {
+      console.error('Error analyzing content:', error);
+      alert('Error analyzing content: ' + error.message);
+    }
+  });
+}
+
+// Content Editor
+function initContentEditor() {
+  // Initialize markdown editor
+  const markdownEditor = document.getElementById('markdownEditor');
+  const markdownPreview = document.getElementById('markdownPreview');
+  const editorButtons = document.querySelectorAll('.toolbar button[data-command]');
+  
+  // Skip if elements don't exist
+  if (!markdownEditor || !markdownPreview || !editorButtons.length) return;
+  
+  // Initialize mermaid if available
+  if (typeof mermaid !== 'undefined') {
+    mermaid.initialize({ startOnLoad: true, theme: 'default' });
+  }
+  
+  // Markdown preview update
+  markdownEditor.addEventListener('input', updateMarkdownPreview);
+  updateMarkdownPreview();
+  
+  // Markdown toolbar buttons
+  editorButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const command = button.getAttribute('data-command');
+      applyMarkdownCommand(command);
+    });
+  });
+  
+  // Mermaid functionality
+  const mermaidEditor = document.getElementById('mermaidEditor');
+  const mermaidPreview = document.getElementById('mermaidPreview');
+  const mermaidTemplates = document.getElementById('mermaidTemplates');
+  const exportMermaidBtn = document.getElementById('exportMermaid');
+  
+  if (mermaidEditor && mermaidPreview) {
+    mermaidEditor.addEventListener('input', updateMermaidPreview);
+    updateMermaidPreview();
     
-    relevanceElement.innerHTML = `
-      <div style="display: flex; align-items: center; justify-content: center;">
-        <div class="relevance-circle" style="background: conic-gradient(#2575fc ${percentage}%, #f0f2f5 0%);">
-          <div class="inner-circle">${percentage}%</div>
-        </div>
+    if (mermaidTemplates) {
+      mermaidTemplates.addEventListener('change', () => {
+        const template = mermaidTemplates.value;
+        if (!template) return;
         
-        <div class="keyword-container">
-          <div class="keyword-title">Primary Keyword: "${keywordRelevance.keyword}"</div>
-          <div>Occurrences: ${keywordRelevance.occurrences}</div>
-          <div>Density: ${keywordRelevance.density}</div>
-          <div>Found in: ${[
-            keywordRelevance.inH1 ? 'H1 Heading' : '',
-            keywordRelevance.inHeadings ? 'Other Headings' : '',
-            keywordRelevance.inFirstWords ? 'First Paragraph' : '',
-            keywordRelevance.inTitle ? 'Title Tag' : '',
-            keywordRelevance.inUrl ? 'URL' : ''
-          ].filter(Boolean).join(', ') || 'Body text only'}</div>
-        </div>
-      </div>
-    `;
+        let code = '';
+        
+        switch(template) {
+          case 'flowchart':
+            code = `graph TD
+        A[Start] --> B{Decision}
+        B -->|Yes| C[Action 1]
+        B -->|No| D[Action 2]
+        C --> E[Result 1]
+        D --> E`;
+            break;
+          case 'sequence':
+            code = `sequenceDiagram
+        participant A as User
+        participant B as System
+        A->>B: Request Data
+        B->>B: Process Data
+        B->>A: Return Result`;
+            break;
+          case 'gantt':
+            code = `gantt
+        title Project Schedule
+        dateFormat  YYYY-MM-DD
+        section Planning
+        Requirements  :done, a1, 2023-01-01, 7d
+        Design        :a2, after a1, 10d
+        section Development
+        Coding        :a3, after a2, 15d
+        Testing       :a4, after a3, 5d`;
+            break;
+        }
+        
+        mermaidEditor.value = code;
+        updateMermaidPreview();
+      });
+    }
+    
+    if (exportMermaidBtn) {
+      exportMermaidBtn.addEventListener('click', () => {
+        // This would require additional code for real SVG export
+        alert('In a production environment, this would export the diagram as SVG.');
+      });
+    }
+  }
+  
+  function updateMarkdownPreview() {
+    const markdown = markdownEditor.value;
+    if (typeof marked !== 'undefined') {
+      markdownPreview.innerHTML = marked.parse(markdown);
+    } else {
+      markdownPreview.innerHTML = `<p>Markdown preview not available. Marked.js is required.</p>`;
+    }
+  }
+  
+  function applyMarkdownCommand(command) {
+    const textarea = markdownEditor;
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const selectedText = textarea.value.substring(start, end);
+    
+    let replacement = '';
+    
+    switch(command) {
+      case 'bold':
+        replacement = `**${selectedText || 'bold text'}**`;
+        break;
+      case 'italic':
+        replacement = `*${selectedText || 'italic text'}*`;
+        break;
+      case 'link':
+        replacement = `[${selectedText || 'link text'}](url)`;
+        break;
+      case 'code':
+        replacement = `\`${selectedText || 'code'}\``;
+        break;
+      case 'image':
+        replacement = `![${selectedText || 'alt text'}](image-url)`;
+        break;
+      case 'table':
+        replacement = `| Header 1 | Header 2 | Header 3 |\n| --- | --- | --- |\n| Row 1 Col 1 | Row 1 Col 2 | Row 1 Col 3 |\n| Row 2 Col 1 | Row 2 Col 2 | Row 2 Col 3 |`;
+        break;
+    }
+    
+    textarea.focus();
+    
+    if (typeof textarea.setRangeText === 'function') {
+      textarea.setRangeText(replacement, start, end);
+      textarea.selectionStart = start + replacement.length;
+      textarea.selectionEnd = start + replacement.length;
+    } else {
+      // Fallback for older browsers
+      const beforeText = textarea.value.substring(0, start);
+      const afterText = textarea.value.substring(end);
+      textarea.value = beforeText + replacement + afterText;
+    }
+    
+    updateMarkdownPreview();
+  }
+  
+  function updateMermaidPreview() {
+    if (typeof mermaid === 'undefined') {
+      mermaidPreview.innerHTML = `<div class="error">Mermaid library not loaded</div>`;
+      return;
+    }
+    
+    try {
+      const code = mermaidEditor.value;
+      // Clear previous diagram before rendering new one
+      mermaidPreview.innerHTML = '';
+      const tempDiv = document.createElement('div');
+      tempDiv.className = 'mermaid';
+      tempDiv.textContent = code;
+      mermaidPreview.appendChild(tempDiv);
+      
+      mermaid.init(undefined, '.mermaid');
+    } catch (error) {
+      mermaidPreview.innerHTML = `<div class="error">Diagram Error: ${error.message}</div>`;
+    }
   }
 }
 
-// AI Assistant Chatbot
-function setupChatbot() {
+// AI Chatbot
+function initAIChatbot() {
   const chatButton = document.getElementById('chat-button');
   const chatContainer = document.getElementById('chat-container');
   const closeChat = document.getElementById('close-chat');
@@ -2338,654 +2110,1036 @@ function setupChatbot() {
   const chatInput = document.getElementById('chat-input');
   const sendButton = document.getElementById('send-button');
   
-  // Track conversation history
+  if (!chatButton || !chatContainer || !closeChat || !chatMessages || !chatInput || !sendButton) return;
+  
   let conversationHistory = [];
   
-  // Toggle chat visibility
+  // Toggle chat window
   chatButton.addEventListener('click', () => {
-    chatContainer.classList.toggle('open');
-    chatButton.classList.toggle('hidden');
-    if (chatContainer.classList.contains('open')) {
-      chatInput.focus();
+    chatContainer.style.display = chatContainer.style.display === 'flex' ? 'none' : 'flex';
+    
+    // Add greeting message if this is the first open
+    if (chatMessages.children.length === 0) {
+      addBotMessage(config.chatbotGreeting);
     }
   });
   
   closeChat.addEventListener('click', () => {
-    chatContainer.classList.remove('open');
-    chatButton.classList.remove('hidden');
+    chatContainer.style.display = 'none';
   });
   
-  // Handle sending messages
-  async function sendMessage() {
+  // Send message
+  sendButton.addEventListener('click', sendMessage);
+  chatInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+      sendMessage();
+    }
+  });
+  
+  function sendMessage() {
     const message = chatInput.value.trim();
     if (!message) return;
     
     // Add user message to chat
-    addMessage('user', message);
+    addUserMessage(message);
     chatInput.value = '';
     
-    // Show typing indicator
-    const typingIndicator = document.createElement('div');
-    typingIndicator.className = 'chat-message assistant-message typing-indicator';
-    typingIndicator.innerHTML = '<div class="chat-avatar"><svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg></div><div class="chat-content">Thinking...</div>';
-    chatMessages.appendChild(typingIndicator);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    // Save to conversation history
+    conversationHistory.push({
+      role: "user",
+      content: message
+    });
     
+    // Process with AI
+    processWithAI(message);
+  }
+  
+  async function processWithAI(message) {
     try {
-      // Add message to conversation history
-      conversationHistory.push({
-        role: "user",
-        content: message
-      });
+      // Show typing indicator
+      const typingIndicator = document.createElement('div');
+      typingIndicator.className = 'message bot-message typing-indicator';
+      typingIndicator.textContent = '...';
+      chatMessages.appendChild(typingIndicator);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
       
-      // Only keep the last 10 messages to prevent token limits
-      conversationHistory = conversationHistory.slice(-10);
-      
-      // Get AI response
-      const completion = await websim.chat.completions.create({
-        messages: [
-          {
-            role: "system",
-            content: "You are a helpful SEO assistant who helps users with SEO tools. Keep responses concise and helpful. The user is working with tools including HTML Analyzer, Keyword Density, TF-IDF Analysis, Readability Score, Meta Tags Generator, and Schema Generator. Provide useful tips for these tools when requested."
-          },
-          ...conversationHistory
-        ]
-      });
+      // This is where you would normally call an external API
+      // For this demo, we'll simulate a response
+      await simulateTyping();
       
       // Remove typing indicator
       chatMessages.removeChild(typingIndicator);
       
-      // Add AI response to chat
-      const aiResponse = completion.content;
-      addMessage('assistant', aiResponse);
+      // Generate a response based on the message
+      let response = '';
       
-      // Add to conversation history
-      conversationHistory.push({
-        role: "assistant",
-        content: aiResponse
-      });
-      
-    } catch (error) {
-      console.error("Error getting AI response:", error);
-      // Remove typing indicator
-      chatMessages.removeChild(typingIndicator);
-      // Show error message
-      addMessage('assistant', "Sorry, I'm having trouble connecting to the AI service. Please try again later.");
-    }
-  }
-  
-  sendButton.addEventListener('click', sendMessage);
-  chatInput.addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') sendMessage();
-  });
-  
-  // Add message to chat
-  function addMessage(sender, text) {
-    const messageElement = document.createElement('div');
-    messageElement.className = `chat-message ${sender}-message`;
-    
-    const avatar = document.createElement('div');
-    avatar.className = 'chat-avatar';
-    avatar.innerHTML = sender === 'user' ? 
-      '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>' : 
-      '<svg viewBox="0 0 24 24"><path fill="currentColor" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>';
-    
-    const content = document.createElement('div');
-    content.className = 'chat-content';
-    content.textContent = text;
-    
-    messageElement.appendChild(avatar);
-    messageElement.appendChild(content);
-    chatMessages.appendChild(messageElement);
-    
-    // Scroll to bottom
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-  }
-  
-  // Add initial greeting
-  setTimeout(async () => {
-    try {
-      const completion = await websim.chat.completions.create({
-        messages: [
-          {
-            role: "system",
-            content: "You are a helpful SEO assistant. Provide a brief, welcoming greeting message in 1-2 sentences, introducing yourself and offering to help with SEO tools."
-          }
-        ]
-      });
-      
-      const greeting = completion.content;
-      addMessage('assistant', greeting);
-      
-      // Add to conversation history
-      conversationHistory.push({
-        role: "assistant",
-        content: greeting
-      });
-    } catch (error) {
-      console.error("Error getting AI greeting:", error);
-      addMessage('assistant', "👋 Hi! I'm your SEO assistant. How can I help you with the SEO tools today?");
-    }
-  }, 1000);
-}
-
-// Mock Google Natural Language API client for demo purposes
-const websim = {
-  chat: {
-    completions: {
-      create: async function(params) {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        return { content: "I'm your SEO assistant. How can I help you with the SEO tools today?" };
-      }
-    }
-  }
-};
-
-// Theme Switcher
-function setupThemeSwitcher() {
-  const themes = [
-    { name: 'Default', class: '' },
-    { name: 'Diamond Reflections', class: 'theme-diamond' },
-    { name: 'Luxury', class: 'theme-luxury' },
-    { name: 'Cyberpunk 2077', class: 'theme-cyberpunk' },
-    { name: 'Neomorphism', class: 'theme-neomorphism' }
-  ];
-  
-  // Create theme switcher HTML
-  const themeSwitcher = document.createElement('div');
-  themeSwitcher.className = 'theme-switcher';
-  
-  // Add theme buttons
-  themes.forEach(theme => {
-    const button = document.createElement('button');
-    button.className = 'theme-button';
-    button.textContent = theme.name;
-    button.dataset.theme = theme.class;
-    
-    // Set active state for default theme
-    if (theme.class === '') {
-      button.classList.add('active');
-    }
-    
-    button.addEventListener('click', () => {
-      // Remove all theme classes from body
-      document.body.className = '';
-      
-      // Add new theme class if not default
-      if (theme.class) {
-        document.body.classList.add(theme.class);
-      }
-      
-      // Update active button
-      document.querySelectorAll('.theme-button').forEach(btn => {
-        btn.classList.remove('active');
-      });
-      button.classList.add('active');
-      
-      // Save user preference
-      localStorage.setItem('selectedTheme', theme.class);
-    });
-    
-    themeSwitcher.appendChild(button);
-  });
-  
-  // Add theme switcher to API manager panel if it exists, otherwise add to body
-  const apiManagerPanel = document.querySelector('.api-manager-panel');
-  if (apiManagerPanel) {
-    apiManagerPanel.appendChild(themeSwitcher);
-  } else {
-    document.body.appendChild(themeSwitcher);
-  }
-  
-  // Load saved theme preference
-  const savedTheme = localStorage.getItem('selectedTheme');
-  if (savedTheme) {
-    document.body.className = savedTheme;
-    
-    // Update active button
-    const activeButton = document.querySelector(`.theme-button[data-theme="${savedTheme}"]`);
-    if (activeButton) {
-      document.querySelectorAll('.theme-button').forEach(btn => {
-        btn.classList.remove('active');
-      });
-      activeButton.classList.add('active');
-    }
-  }
-}
-
-// Setup API Management System
-function setupApiManagement() {
-  // Create API Manager container
-  const apiManager = document.createElement('div');
-  apiManager.className = 'api-manager';
-  apiManager.innerHTML = `
-    <div class="api-manager-toggle">
-      <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z" fill="currentColor"/>
-      </svg>
-    </div>
-    <div class="api-manager-panel">
-      <h3>API Endpoints</h3>
-      <p>Configure up to 4 API endpoints for your tools</p>
-      
-      <div class="api-form">
-        <div class="api-endpoint">
-          <label>OpenAI API</label>
-          <input type="text" id="openai-api" placeholder="Enter API key">
-          <div class="api-status" data-status="disconnected">Disconnected</div>
-        </div>
-        
-        <div class="api-endpoint">
-          <label>Keywords Everywhere API</label>
-          <input type="text" id="keywords-api" placeholder="Enter API key">
-          <div class="api-status" data-status="disconnected">Disconnected</div>
-        </div>
-        
-        <div class="api-endpoint">
-          <label>Google Natural Language API</label>
-          <input type="text" id="google-api" placeholder="Enter API key">
-          <div class="api-status" data-status="disconnected">Disconnected</div>
-        </div>
-        
-        <div class="api-endpoint">
-          <label>Custom API Endpoint</label>
-          <input type="text" id="custom-api" placeholder="Enter API URL">
-          <input type="text" id="custom-api-key" placeholder="Enter API key (optional)">
-          <div class="api-status" data-status="disconnected">Disconnected</div>
-        </div>
-      </div>
-      
-      <div class="api-actions">
-        <button id="save-api-keys" class="analyze-btn">Save API Keys</button>
-        <button id="test-connections" class="nav-btn">Test Connections</button>
-      </div>
-    </div>
-  `;
-  
-  document.body.appendChild(apiManager);
-  
-  // Toggle API manager panel
-  const apiToggle = apiManager.querySelector('.api-manager-toggle');
-  const apiPanel = apiManager.querySelector('.api-manager-panel');
-  
-  apiToggle.addEventListener('click', () => {
-    apiPanel.classList.toggle('open');
-  });
-  
-  // Setup API key saving
-  const saveButton = document.getElementById('save-api-keys');
-  const testButton = document.getElementById('test-connections');
-  
-  saveButton.addEventListener('click', () => {
-    const openaiKey = document.getElementById('openai-api').value.trim();
-    const keywordsKey = document.getElementById('keywords-api').value.trim();
-    const googleKey = document.getElementById('google-api').value.trim();
-    const customApiUrl = document.getElementById('custom-api').value.trim();
-    const customApiKey = document.getElementById('custom-api-key').value.trim();
-    
-    // Save to localStorage (encrypted in a real app)
-    if (openaiKey) localStorage.setItem('openai-api-key', openaiKey);
-    if (keywordsKey) localStorage.setItem('keywords-api-key', keywordsKey);
-    if (googleKey) localStorage.setItem('google-api-key', googleKey);
-    if (customApiUrl) localStorage.setItem('custom-api-url', customApiUrl);
-    if (customApiKey) localStorage.setItem('custom-api-key', customApiKey);
-    
-    updateApiStatus();
-    
-    // Show success message
-    const successMsg = document.createElement('div');
-    successMsg.className = 'api-save-success';
-    successMsg.textContent = 'API keys saved successfully!';
-    apiPanel.appendChild(successMsg);
-    
-    setTimeout(() => {
-      apiPanel.removeChild(successMsg);
-    }, 3000);
-  });
-  
-  testButton.addEventListener('click', async () => {
-    const statusElements = document.querySelectorAll('.api-status');
-    statusElements.forEach(element => {
-      element.textContent = 'Testing...';
-      element.dataset.status = 'testing';
-    });
-    
-    await testApiConnections();
-  });
-  
-  // Load saved API keys
-  loadSavedApiKeys();
-  updateApiStatus();
-}
-
-// Load saved API keys
-function loadSavedApiKeys() {
-  const openaiKey = localStorage.getItem('openai-api-key');
-  const keywordsKey = localStorage.getItem('keywords-api-key');
-  const googleKey = localStorage.getItem('google-api-key');
-  const customApiUrl = localStorage.getItem('custom-api-url');
-  const customApiKey = localStorage.getItem('custom-api-key');
-  
-  if (openaiKey) document.getElementById('openai-api').value = openaiKey;
-  if (keywordsKey) document.getElementById('keywords-api').value = keywordsKey;
-  if (googleKey) document.getElementById('google-api').value = googleKey;
-  if (customApiUrl) document.getElementById('custom-api').value = customApiUrl;
-  if (customApiKey) document.getElementById('custom-api-key').value = customApiKey;
-}
-
-// Update API status indicators
-function updateApiStatus() {
-  const openaiKey = localStorage.getItem('openai-api-key');
-  const keywordsKey = localStorage.getItem('keywords-api-key');
-  const googleKey = localStorage.getItem('google-api-key');
-  const customApiUrl = localStorage.getItem('custom-api-url');
-  
-  const statusElements = document.querySelectorAll('.api-status');
-  
-  if (openaiKey) {
-    statusElements[0].textContent = 'Connected';
-    statusElements[0].dataset.status = 'connected';
-  }
-  
-  if (keywordsKey) {
-    statusElements[1].textContent = 'Connected';
-    statusElements[1].dataset.status = 'connected';
-  }
-  
-  if (googleKey) {
-    statusElements[2].textContent = 'Connected';
-    statusElements[2].dataset.status = 'connected';
-  }
-  
-  if (customApiUrl) {
-    statusElements[3].textContent = 'Connected';
-    statusElements[3].dataset.status = 'connected';
-  }
-}
-
-// Test API connections
-async function testApiConnections() {
-  const openaiKey = localStorage.getItem('openai-api-key');
-  const keywordsKey = localStorage.getItem('keywords-api-key');
-  const googleKey = localStorage.getItem('google-api-key');
-  const customApiUrl = localStorage.getItem('custom-api-url');
-  const customApiKey = localStorage.getItem('custom-api-key');
-  
-  const statusElements = document.querySelectorAll('.api-status');
-  
-  // Test OpenAI connection
-  if (openaiKey) {
-    try {
-      // In a real app, you would use a proper test endpoint
-      const response = await fetch('https://api.openai.com/v1/engines', {
-        headers: {
-          'Authorization': `Bearer ${openaiKey}`
-        }
-      });
-      
-      if (response.ok) {
-        statusElements[0].textContent = 'Connected';
-        statusElements[0].dataset.status = 'connected';
+      if (message.toLowerCase().includes('keyword')) {
+        response = "Keyword research is essential for SEO. Start by identifying relevant terms your audience uses, analyze competition, and focus on long-tail keywords with reasonable search volume.";
+      } else if (message.toLowerCase().includes('meta')) {
+        response = "Meta tags help search engines understand your content. Ensure your title is under 60 characters, descriptions are around 155 characters, and both contain relevant keywords naturally.";
+      } else if (message.toLowerCase().includes('schema')) {
+        response = "Schema markup helps search engines understand your content context. LocalBusiness schema is great for companies with physical locations, while Product schema can enhance e-commerce listings with rich results.";
+      } else if (message.toLowerCase().includes('analyze') || message.toLowerCase().includes('content')) {
+        response = "For content analysis, focus on readability scores, keyword density, and sentiment. Aim for Flesch Reading Ease scores of 60-70 for general audiences, and maintain keyword density around 1-2%.";
+      } else if (message.toLowerCase().includes('readability')) {
+        response = "Readability is crucial for user engagement. The Flesch Reading Ease score measures how easy your content is to read. Higher scores (70-100) are easier to read. Most online content should aim for scores between 60-70, suitable for 8th-9th grade reading levels.";
+      } else if (message.toLowerCase().includes('seo')) {
+        response = "SEO combines technical optimization, quality content, and backlink building. Start with keyword research, optimize your on-page elements, create valuable content, and build high-quality backlinks from reputable sites.";
       } else {
-        statusElements[0].textContent = 'Invalid API Key';
-        statusElements[0].dataset.status = 'error';
+        response = "I can help with keyword research, content analysis, meta tags, schema markup, and more. What specific SEO aspect would you like information about?";
+      }
+      
+      // Add response to chat
+      addBotMessage(response);
+      
+      // Save to conversation history
+      conversationHistory.push({
+        role: "assistant",
+        content: response
+      });
+      
+      // Only keep the last 10 messages for context
+      if (conversationHistory.length > 10) {
+        conversationHistory = conversationHistory.slice(-10);
       }
     } catch (error) {
-      statusElements[0].textContent = 'Connection Error';
-      statusElements[0].dataset.status = 'error';
+      console.error('Error processing message:', error);
+      addBotMessage("I'm sorry, I couldn't process your request. Please try again.");
     }
-  } else {
-    statusElements[0].textContent = 'Disconnected';
-    statusElements[0].dataset.status = 'disconnected';
   }
   
-  // Similarly test other API connections...
-  // Keywords Everywhere
-  if (keywordsKey) {
-    statusElements[1].textContent = 'Connected';  // For demo purposes
-    statusElements[1].dataset.status = 'connected';
-  } else {
-    statusElements[1].textContent = 'Disconnected';
-    statusElements[1].dataset.status = 'disconnected';
+  function addUserMessage(text) {
+    const message = document.createElement('div');
+    message.className = 'message user-message';
+    message.textContent = text;
+    chatMessages.appendChild(message);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
   }
   
-  // Google Natural Language
-  if (googleKey) {
-    statusElements[2].textContent = 'Connected';  // For demo purposes
-    statusElements[2].dataset.status = 'connected';
-  } else {
-    statusElements[2].textContent = 'Disconnected';
-    statusElements[2].dataset.status = 'disconnected';
+  function addBotMessage(text) {
+    const message = document.createElement('div');
+    message.className = 'message bot-message';
+    message.textContent = text;
+    chatMessages.appendChild(message);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
   }
   
-  // Custom API
-  if (customApiUrl) {
-    statusElements[3].textContent = 'Connected';  // For demo purposes
-    statusElements[3].dataset.status = 'connected';
-  } else {
-    statusElements[3].textContent = 'Disconnected';
-    statusElements[3].dataset.status = 'disconnected';
+  async function simulateTyping() {
+    return new Promise(resolve => setTimeout(resolve, 1000 + Math.random() * 1000));
   }
 }
 
-// Get API Key for a specific service
-function getApiKey(service) {
-  switch (service) {
-    case 'openai':
-      return localStorage.getItem('openai-api-key');
-    case 'keywords':
-      return localStorage.getItem('keywords-api-key');
-    case 'google':
-      return localStorage.getItem('google-api-key');
-    case 'custom':
-      return {
-        url: localStorage.getItem('custom-api-url'),
-        key: localStorage.getItem('custom-api-key')
-      };
-    default:
-      return null;
-  }
-}
-
-// Update document ready function
-document.addEventListener('DOMContentLoaded', () => {
-  // ... existing code ...
+// Backlink Checker
+function initBacklinkChecker() {
+  const checkBtn = document.getElementById('check-backlinks-btn');
+  const domainInput = document.getElementById('backlink-domain');
+  let backlinkChart = null;
   
-  // Set up the tools
-  setupHtmlAnalyzer();
-  setupKeywordDensity();
-  setupTfIdf();
-  setupReadability();
-  setupMetaTags();
-  setupSchemaGenerator();
-  setupKeywordDatabase(); 
-  setupSentimentAnalysis();
-  setupContentEditor(); // Add this line
-  setupChatbot();
-  setupThemeSwitcher();
-  setupApiManagement();
-});
-
-// Content Editor Tool
-function setupContentEditor() {
-  // Load required libraries
-  loadScript('https://cdn.jsdelivr.net/npm/marked/marked.min.js')
-    .then(() => loadScript('https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.0.5/purify.min.js'))
-    .then(() => loadScript('https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js'))
-    .then(() => loadScript('https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js'))
-    .then(() => {
-      // Initialize content editor after all scripts are loaded
-      initializeContentEditor();
-    })
-    .catch(error => console.error('Error loading content editor scripts:', error));
-    
-  // Load Font Awesome if not already loaded
-  if (!document.querySelector('link[href*="font-awesome"]')) {
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css';
-    document.head.appendChild(link);
-  }
+  if (!checkBtn || !domainInput) return;
   
-  // Load highlight.js styles if not already loaded
-  if (!document.querySelector('link[href*="highlight.js"]')) {
-    const link = document.createElement('link');
-    link.rel = 'stylesheet';
-    link.href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/default.min.css';
-    document.head.appendChild(link);
-  }
-}
-
-// Helper function to dynamically load scripts
-function loadScript(src) {
-  return new Promise((resolve, reject) => {
-    // Check if script is already loaded
-    if (document.querySelector(`script[src="${src}"]`)) {
-      resolve();
+  checkBtn.addEventListener('click', () => {
+    const domain = domainInput.value.trim();
+    if (!domain) {
+      alert('Please enter a domain to analyze');
       return;
     }
     
-    const script = document.createElement('script');
-    script.src = src;
-    script.onload = resolve;
-    script.onerror = reject;
-    document.head.appendChild(script);
+    // Mock backlink data - in a real app, this would come from an API call
+    analyzeBacklinks(domain);
   });
-}
-
-function initializeContentEditor() {
-  // Markdown Editor Functionality
-  const markdownEditor = document.getElementById('markdownEditor');
-  const markdownPreview = document.getElementById('markdownPreview');
-  let mermaidInitialized = false;
   
-  if (typeof marked !== 'undefined') {
-    marked.setOptions({
-      breaks: true,
-      highlight: function(code) {
-        return hljs.highlightAuto(code).value;
-      }
-    });
-  
-    const updateMarkdownPreview = () => {
-      if (markdownEditor && markdownPreview) {
-        const clean = DOMPurify.sanitize(marked.parse(markdownEditor.value));
-        markdownPreview.innerHTML = clean;
-      }
-    };
-  
-    if (markdownEditor) {
-      markdownEditor.addEventListener('input', updateMarkdownPreview);
-      updateMarkdownPreview(); // Initial preview
-    }
+  function analyzeBacklinks(domain) {
+    // Show loading state
+    document.getElementById('backlink-summary').innerHTML = '<div class="loading">Analyzing backlinks...</div>';
+    
+    // Simulate API call delay
+    setTimeout(() => {
+      // Generate mock data
+      const mockData = generateMockBacklinkData(domain);
+      
+      // Update UI with backlink data
+      updateBacklinkUI(mockData);
+    }, 1500);
   }
   
-  // Mermaid Editor Functionality
-  const mermaidEditor = document.getElementById('mermaidEditor');
-  const mermaidPreview = document.getElementById('mermaidPreview');
-  
-  async function renderMermaid() {
-    if (!mermaidInitialized && typeof mermaid !== 'undefined') {
-      await mermaid.initialize({ startOnLoad: false, theme: 'neutral' });
-      mermaidInitialized = true;
+  function generateMockBacklinkData(domain) {
+    // Create realistic-looking mock data
+    const totalBacklinks = Math.floor(Math.random() * 5000) + 500;
+    const referringDomains = Math.floor(totalBacklinks / (Math.random() * 5 + 3));
+    const doFollowLinks = Math.floor(totalBacklinks * (0.4 + Math.random() * 0.3));
+    const noFollowLinks = totalBacklinks - doFollowLinks;
+    
+    // Domain authority - higher for more well-known domains
+    let domainAuthority = 20 + Math.floor(Math.random() * 30);
+    if (domain.includes('google') || domain.includes('amazon') || domain.includes('facebook')) {
+      domainAuthority = 80 + Math.floor(Math.random() * 15);
+    } else if (domain.includes('com') || domain.includes('org') || domain.includes('net')) {
+      domainAuthority += 10;
     }
     
-    if (mermaidEditor && mermaidPreview && typeof mermaid !== 'undefined') {
-      try {
-        mermaidPreview.innerHTML = '';
-        const { svg } = await mermaid.render('mermaidChart', mermaidEditor.value);
-        mermaidPreview.innerHTML = svg;
-      } catch (error) {
-        mermaidPreview.innerHTML = `<div class="error">${error.message}</div>`;
+    // Create mock referring domains
+    const mockDomains = [
+      {name: 'example.com', backlinks: Math.floor(Math.random() * 50) + 5, authority: 35 + Math.floor(Math.random() * 20)},
+      {name: 'blog.com', backlinks: Math.floor(Math.random() * 40) + 3, authority: 40 + Math.floor(Math.random() * 15)},
+      {name: 'news.org', backlinks: Math.floor(Math.random() * 30) + 2, authority: 45 + Math.floor(Math.random() * 20)},
+      {name: 'reference.net', backlinks: Math.floor(Math.random() * 20) + 1, authority: 30 + Math.floor(Math.random() * 25)},
+      {name: 'directory.io', backlinks: Math.floor(Math.random() * 15) + 1, authority: 25 + Math.floor(Math.random() * 15)}
+    ];
+    
+    // Generate more realistic domain list
+    const topLevelDomains = ['.com', '.org', '.net', '.io', '.co', '.info', '.edu'];
+    const prefixes = ['blog', 'news', 'digital', 'online', 'tech', 'web'];
+    const domainWords = ['marketing', 'business', 'review', 'today', 'weekly', 'hub', 'central'];
+    
+    const extraDomains = [];
+    for (let i = 0; i < 15; i++) {
+      const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+      const word = domainWords[Math.floor(Math.random() * domainWords.length)];
+      const tld = topLevelDomains[Math.floor(Math.random() * topLevelDomains.length)];
+      
+      extraDomains.push({
+        name: `${prefix}-${word}${tld}`,
+        backlinks: Math.floor(Math.random() * 15) + 1,
+        authority: 10 + Math.floor(Math.random() * 40)
+      });
+    }
+    
+    const allDomains = [...mockDomains, ...extraDomains];
+    
+    // Create mock backlinks
+    const backlinks = [];
+    const anchorTexts = ['click here', 'website', domain.split('.')[0], 'learn more', 'read more', 'source', 'reference'];
+    const paths = ['/', '/about', '/blog', '/products', '/services', '/contact', '/resources'];
+    
+    for (let i = 0; i < 25; i++) {
+      const sourceDomain = allDomains[Math.floor(Math.random() * allDomains.length)].name;
+      const anchorText = anchorTexts[Math.floor(Math.random() * anchorTexts.length)];
+      const targetPath = paths[Math.floor(Math.random() * paths.length)];
+      const sourcePath = paths[Math.floor(Math.random() * paths.length)];
+      const doFollow = Math.random() > 0.3;
+      
+      backlinks.push({
+        sourceUrl: `https://${sourceDomain}${sourcePath}`,
+        targetUrl: `https://${domain}${targetPath}`,
+        anchorText: anchorText,
+        doFollow: doFollow,
+        firstSeen: getRandomDate(365),
+        lastSeen: getRandomDate(30)
+      });
+    }
+    
+    return {
+      domain: domain,
+      totalBacklinks: totalBacklinks,
+      referringDomains: referringDomains,
+      doFollowLinks: doFollowLinks,
+      noFollowLinks: noFollowLinks,
+      domainAuthority: domainAuthority,
+      domains: allDomains.sort((a, b) => b.backlinks - a.backlinks).slice(0, 15),
+      backlinks: backlinks,
+      monthlyTrend: [
+        totalBacklinks - Math.floor(Math.random() * 100) - 200,
+        totalBacklinks - Math.floor(Math.random() * 80) - 150,
+        totalBacklinks - Math.floor(Math.random() * 60) - 100,
+        totalBacklinks - Math.floor(Math.random() * 40) - 50,
+        totalBacklinks - Math.floor(Math.random() * 20),
+        totalBacklinks
+      ]
+    };
+  }
+  
+  function getRandomDate(daysAgo) {
+    const date = new Date();
+    date.setDate(date.getDate() - Math.floor(Math.random() * daysAgo));
+    return date.toISOString().substring(0, 10);
+  }
+  
+  function updateBacklinkUI(data) {
+    // Update summary
+    const backlinkSummaryEl = document.getElementById('backlink-summary');
+    if (backlinkSummaryEl) {
+      backlinkSummaryEl.innerHTML = `
+        <div class="stat-visualization">
+          <div class="stat-metric">
+            <h4>Total Backlinks</h4>
+            <div class="stat-value">${data.totalBacklinks.toLocaleString()}</div>
+          </div>
+          <div class="stat-metric">
+            <h4>Referring Domains</h4>
+            <div class="stat-value">${data.referringDomains.toLocaleString()}</div>
+          </div>
+          <div class="stat-metric">
+            <h4>Domain Authority</h4>
+            <div class="stat-value">${data.domainAuthority}</div>
+          </div>
+          <div class="stat-metric">
+            <h4>DoFollow Links</h4>
+            <div class="stat-value">${data.doFollowLinks.toLocaleString()}</div>
+          </div>
+        </div>
+      `;
+    }
+    
+    // Update referring domains
+    const referringDomainsEl = document.getElementById('referring-domains');
+    if (referringDomainsEl) {
+      let domainsHTML = `
+        <table class="data-table">
+          <tr>
+            <th>Domain</th>
+            <th>Backlinks</th>
+            <th>Authority</th>
+          </tr>
+      `;
+      
+      data.domains.forEach(domain => {
+        domainsHTML += `
+          <tr>
+            <td>${domain.name}</td>
+            <td>${domain.backlinks}</td>
+            <td>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: ${domain.authority}%"></div>
+                <span>${domain.authority}</span>
+              </div>
+            </td>
+          </tr>
+        `;
+      });
+      
+      domainsHTML += '</table>';
+      referringDomainsEl.innerHTML = domainsHTML;
+    }
+    
+    // Update backlink list
+    const backlinksListEl = document.getElementById('backlink-list');
+    if (backlinksListEl) {
+      let backlinksHTML = `
+        <table class="data-table">
+          <tr>
+            <th>Source URL</th>
+            <th>Anchor Text</th>
+            <th>Type</th>
+            <th>First Seen</th>
+          </tr>
+      `;
+      
+      data.backlinks.forEach(link => {
+        backlinksHTML += `
+          <tr>
+            <td class="url-cell"><a href="${link.sourceUrl}" target="_blank">${link.sourceUrl}</a></td>
+            <td>"${link.anchorText}"</td>
+            <td><span class="tag ${link.doFollow ? 'tag-success' : 'tag-neutral'}">${link.doFollow ? 'DoFollow' : 'NoFollow'}</span></td>
+            <td>${link.firstSeen}</td>
+          </tr>
+        `;
+      });
+      
+      backlinksHTML += '</table>';
+      backlinksListEl.innerHTML = backlinksHTML;
+    }
+    
+    // Create domain map visualization
+    const domainMapEl = document.getElementById('domainMap');
+    if (domainMapEl) {
+      let mapHTML = '<div class="domain-clusters">';
+      
+      // Use fixed positions instead of calculating based on sines/cosines
+      const positions = [
+        { top: 30, left: 150 }, { top: 70, left: 200 }, { top: 150, left: 250 },
+        { top: 220, left: 200 }, { top: 250, left: 100 }, { top: 220, left: 40 },
+        { top: 150, left: 20 }, { top: 70, left: 40 }, { top: 30, left: 90 },
+        { top: 100, left: 60 }, { top: 150, left: 100 }, { top: 100, left: 200 },
+        { top: 180, left: 150 }, { top: 130, left: 180 }, { top: 80, left: 130 },
+      ];
+      
+      data.domains.forEach((domain, index) => {
+        const size = 30 + (domain.backlinks * 3);
+        const position = positions[Math.min(index, positions.length - 1)];
+        const top = position.top;
+        const left = position.left;
+        const opacity = 0.6 + (domain.authority / 100) * 0.4;
+        
+        mapHTML += `
+          <div class="domain-bubble" style="width: ${size}px; height: ${size}px; top: ${top}px; left: ${left}px; opacity: ${opacity};" 
+               title="${domain.name} - ${domain.backlinks} backlinks">
+            <span>${domain.name.substring(0, 8)}</span>
+          </div>
+        `;
+      });
+      
+      // Add central domain
+      mapHTML += `
+        <div class="domain-bubble main-domain" style="width: 80px; height: 80px; top: 150px; left: 150px;" 
+             title="${data.domain} - ${data.totalBacklinks} backlinks">
+          <span>${data.domain.substring(0, 10)}</span>
+        </div>
+        
+        <svg class="domain-links">
+          ${data.domains.map((domain, index) => {
+            const position = positions[Math.min(index, positions.length - 1)];
+            const x1 = position.left + 15; // center of domain bubble
+            const y1 = position.top + 15;
+            const strokeWidth = Math.max(1, Math.min(5, domain.backlinks / 10));
+            const opacity = 0.2 + (domain.backlinks / 50) * 0.8;
+            
+            return `<line x1="${x1}" y1="${y1}" x2="150" y2="150" 
+                          stroke="var(--primary-color)" stroke-width="${strokeWidth}" 
+                          opacity="${opacity}" />`;
+          }).join('')}
+        </svg>
+      </div>`;
+      
+      domainMapEl.innerHTML = mapHTML;
+    }
+    
+    // Create/update backlink chart
+    const chartCanvas = document.getElementById('backlinkChart');
+    if (chartCanvas) {
+      const ctx = chartCanvas.getContext('2d');
+      
+      if (backlinkChart) {
+        backlinkChart.destroy();
       }
+      
+      const theme = localStorage.getItem('themePref') || config.theme.defaultTheme;
+      const chartColors = config.chartColors[theme] || config.chartColors.light;
+      
+      backlinkChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: ['6 months ago', '5 months ago', '4 months ago', '3 months ago', '2 months ago', 'Current'],
+          datasets: [{
+            label: 'Total Backlinks',
+            data: data.monthlyTrend,
+            fill: true,
+            backgroundColor: chartColors.backgroundColor,
+            borderColor: chartColors.borderColor,
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            title: {
+              display: true,
+              text: 'Backlink Growth Trend'
+            }
+          },
+          scales: {
+            y: {
+              beginAtZero: false,
+              title: {
+                display: true,
+                text: 'Number of Backlinks'
+              }
+            }
+          }
+        }
+      });
     }
   }
+}
+
+// Competitor Gap Analysis
+function initCompetitorGap() {
+  const analyzeBtn = document.getElementById('analyze-competitors-btn');
+  const yourDomainInput = document.getElementById('your-domain');
+  const competitor1Input = document.getElementById('competitor1');
+  const competitor2Input = document.getElementById('competitor2');
+  const competitor3Input = document.getElementById('competitor3');
   
-  if (mermaidEditor) {
-    mermaidEditor.addEventListener('input', renderMermaid);
-    setTimeout(renderMermaid, 1000); // Initial render with delay to ensure mermaid is loaded
-  }
+  let competitorChart = null;
+  let gapRadarChart = null;
   
-  // Toolbar button functionality
-  const toolbarButtons = document.querySelectorAll('.toolbar button[data-command]');
-  toolbarButtons.forEach(button => {
-    button.addEventListener('click', () => {
-      const command = button.getAttribute('data-command');
-      
-      if (!markdownEditor) return;
-      
-      const start = markdownEditor.selectionStart;
-      const end = markdownEditor.selectionEnd;
-      const selectedText = markdownEditor.value.substring(start, end);
-      
-      let replacement = '';
-      
-      switch (command) {
-        case 'bold':
-          replacement = `**${selectedText || 'bold text'}**`;
-          break;
-        case 'italic':
-          replacement = `*${selectedText || 'italic text'}*`;
-          break;
-        case 'link':
-          replacement = `[${selectedText || 'link text'}](https://example.com)`;
-          break;
-        case 'code':
-          replacement = `\`${selectedText || 'code'}\``;
-          break;
-        case 'image':
-          replacement = `![${selectedText || 'alt text'}](https://example.com/image.jpg)`;
-          break;
-        case 'table':
-          replacement = `| Header 1 | Header 2 |\n| -------- | -------- |\n| Cell 1   | Cell 2   |`;
-          break;
-      }
-      
-      markdownEditor.value = 
-        markdownEditor.value.substring(0, start) + 
-        replacement + 
-        markdownEditor.value.substring(end);
-      
-      // Update the preview
-      updateMarkdownPreview();
-      
-      // Focus back on the editor
-      markdownEditor.focus();
-    });
+  if (!analyzeBtn || !yourDomainInput || !competitor1Input) return;
+  
+  analyzeBtn.addEventListener('click', () => {
+    const yourDomain = yourDomainInput.value.trim();
+    const competitor1 = competitor1Input.value.trim();
+    
+    if (!yourDomain || !competitor1) {
+      alert('Please enter your domain and at least one competitor');
+      return;
+    }
+    
+    // Get optional competitors
+    const competitor2 = competitor2Input.value.trim();
+    const competitor3 = competitor3Input.value.trim();
+    
+    // Array of competitors to analyze
+    const competitors = [competitor1];
+    if (competitor2) competitors.push(competitor2);
+    if (competitor3) competitors.push(competitor3);
+    
+    // Analyze gap
+    analyzeCompetitorGap(yourDomain, competitors);
   });
   
-  // Export Functionality
-  const exportMermaid = document.getElementById('exportMermaid');
-  if (exportMermaid) {
-    exportMermaid.addEventListener('click', () => {
-      const svg = mermaidPreview?.querySelector('svg');
-      if (svg) {
-        const blob = new Blob([svg.outerHTML], { type: 'image/svg+xml' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.download = 'diagram.svg';
-        a.href = url;
-        a.click();
-      }
-    });
+  function analyzeCompetitorGap(yourDomain, competitors) {
+    // Show loading state
+    document.getElementById('gap-metrics').innerHTML = '<div class="loading">Analyzing competitors...</div>';
+    
+    // Simulate API call delay
+    setTimeout(() => {
+      // Generate mock data
+      const gapData = generateMockGapData(yourDomain, competitors);
+      
+      // Update UI
+      updateCompetitorGapUI(gapData);
+    }, 1500);
   }
   
-  // Template Handling
-  const mermaidTemplates = document.getElementById('mermaidTemplates');
-  if (mermaidTemplates) {
-    mermaidTemplates.addEventListener('change', function() {
-      const templates = {
-        flowchart: `graph TD\n    A[Start] --> B{Decision}\n    B --> C[Result]\n    B --> D[Alternative]`,
-        sequence: `sequenceDiagram\n    participant A\n    participant B\n    A->>B: Message`,
-        gantt: `gantt\n    title Project Timeline\n    section Phase 1\n    Task 1 :a1, 2023-10-01, 7d`
+  function generateMockGapData(yourDomain, competitors) {
+    // Create detailed mock data for gap analysis
+    
+    // Metrics for your domain
+    const yourMetrics = {
+      domain: yourDomain,
+      trafficScore: 35 + Math.floor(Math.random() * 30),
+      keywordCount: 800 + Math.floor(Math.random() * 500),
+      backlinks: 1000 + Math.floor(Math.random() * 2000),
+      contentCount: 50 + Math.floor(Math.random() * 50),
+      domainAuthority: 30 + Math.floor(Math.random() * 20),
+      socialSignals: 500 + Math.floor(Math.random() * 1000),
+      loadSpeed: 80 + Math.floor(Math.random() * 15),
+      mobileScore: 75 + Math.floor(Math.random() * 20)
+    };
+    
+    // Generate competitor metrics
+    const competitorMetrics = competitors.map(domain => {
+      // Make well-known domains stronger
+      const isMajorCompetitor = domain.includes('amazon') || domain.includes('google') || 
+                               domain.includes('facebook') || domain.includes('shopify');
+      
+      // Generate realistic metrics with some competitors stronger, some weaker
+      const variation = isMajorCompetitor ? 1.5 : (Math.random() > 0.5 ? 1.2 : 0.8);
+      
+      return {
+        domain: domain,
+        trafficScore: Math.floor(yourMetrics.trafficScore * variation * (0.8 + Math.random() * 0.4)),
+        keywordCount: Math.floor(yourMetrics.keywordCount * variation * (0.8 + Math.random() * 0.4)),
+        backlinks: Math.floor(yourMetrics.backlinks * variation * (0.8 + Math.random() * 0.4)),
+        contentCount: Math.floor(yourMetrics.contentCount * variation * (0.8 + Math.random() * 0.4)),
+        domainAuthority: Math.floor(yourMetrics.domainAuthority * variation * (0.8 + Math.random() * 0.4)),
+        socialSignals: Math.floor(yourMetrics.socialSignals * variation * (0.8 + Math.random() * 0.4)),
+        loadSpeed: Math.floor(yourMetrics.loadSpeed * (Math.random() > 0.5 ? 0.9 : 1.1)),
+        mobileScore: Math.floor(yourMetrics.mobileScore * (Math.random() > 0.5 ? 0.9 : 1.1))
+      };
+    });
+    
+    // Generate keyword gaps
+    const topKeywordGaps = [];
+    const keywordTerms = ['seo', 'marketing', 'analytics', 'content', 'strategy', 'business', 'tools', 
+                         'software', 'review', 'guide', 'tutorial', 'tips', 'best practices'];
+    
+    for (let i = 0; i < 15; i++) {
+      const word1 = keywordTerms[Math.floor(Math.random() * keywordTerms.length)];
+      const word2 = keywordTerms[Math.floor(Math.random() * keywordTerms.length)];
+      const keyword = `${word1} ${word2}`;
+      
+      const difficulty = 10 + Math.floor(Math.random() * 80);
+      const volume = 100 * Math.floor(Math.random() * 100);
+      const competitorRanking = 1 + Math.floor(Math.random() * 10);
+      const yourRanking = Math.random() > 0.7 ? 11 + Math.floor(Math.random() * 90) : 'Not ranking';
+      
+      topKeywordGaps.push({
+        keyword,
+        volume,
+        difficulty,
+        competitorRanking,
+        yourRanking,
+        opportunity: difficulty < 50 && volume > 1000 ? 'High' : 
+                     difficulty < 70 && volume > 500 ? 'Medium' : 'Low'
+      });
+    }
+    
+    // Generate content opportunities
+    const contentGaps = [];
+    const contentTypes = ['Blog Post', 'Guide', 'Tutorial', 'Infographic', 'Video', 'Podcast', 'Case Study'];
+    const contentTopics = [
+      'SEO Strategy for 2023',
+      'Content Marketing Best Practices',
+      'Technical SEO Guide',
+      'Local SEO Tips',
+      'Mobile Optimization',
+      'Voice Search Optimization',
+      'Video SEO Guide',
+      'Featured Snippets Guide',
+      'E-commerce SEO Tips',
+      'Link Building Strategies'
+    ];
+    
+    for (let i = 0; i < Math.floor(Math.random() * 5) + 5; i++) {
+      contentGaps.push({
+        topic: contentTopics[Math.floor(Math.random() * contentTopics.length)],
+        type: contentTypes[Math.floor(Math.random() * contentTypes.length)],
+        competitor: competitors[Math.floor(Math.random() * competitors.length)],
+        potential: Math.random() > 0.6 ? 'High' : Math.random() > 0.3 ? 'Medium' : 'Low'
+      });
+    }
+    
+    // Generate backlink opportunities
+    const backlinkGaps = [];
+    const domainTypes = ['.com', '.org', '.net', '.io', '.co'];
+    const domainPrefixes = ['blog', 'news', 'digital', 'online', 'tech', 'web'];
+    const domainWords = ['marketing', 'business', 'review', 'today', 'weekly', 'hub', 'central'];
+    
+    for (let i = 0; i < Math.floor(Math.random() * 5) + 5; i++) {
+      const prefix = domainPrefixes[Math.floor(Math.random() * domainPrefixes.length)];
+      const word = domainWords[Math.floor(Math.random() * domainWords.length)];
+      const tld = domainTypes[Math.floor(Math.random() * domainTypes.length)];
+      
+      backlinkGaps.push({
+        domain: `${prefix}-${word}${tld}`,
+        authority: 20 + Math.floor(Math.random() * 60),
+        linkingTo: competitors[Math.floor(Math.random() * competitors.length)],
+        linkType: Math.random() > 0.3 ? 'DoFollow' : 'NoFollow',
+        potential: Math.random() > 0.6 ? 'High' : Math.random() > 0.3 ? 'Medium' : 'Low'
+      });
+    }
+    
+    return {
+      yourMetrics,
+      competitorMetrics,
+      topKeywordGaps,
+      contentGaps,
+      backlinkGaps
+    };
+  }
+  
+  function updateCompetitorGapUI(data) {
+    // Update metrics overview
+    const gapMetricsEl = document.getElementById('gap-metrics');
+    if (gapMetricsEl) {
+      let metricsHTML = '<div class="competitor-metrics">';
+      
+      // Your metrics first
+      metricsHTML += `
+        <div class="competitor-card your-domain">
+          <h3>${data.yourMetrics.domain}</h3>
+          <div class="metric-grid">
+            <div class="metric">
+              <div class="metric-label">Traffic Score</div>
+              <div class="metric-value">${data.yourMetrics.trafficScore}</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Keywords</div>
+              <div class="metric-value">${data.yourMetrics.keywordCount.toLocaleString()}</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Backlinks</div>
+              <div class="metric-value">${data.yourMetrics.backlinks.toLocaleString()}</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Domain Authority</div>
+              <div class="metric-value">${data.yourMetrics.domainAuthority}</div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      // Competitor metrics
+      data.competitorMetrics.forEach(competitor => {
+        metricsHTML += `
+          <div class="competitor-card">
+            <h3>${competitor.domain}</h3>
+            <div class="metric-grid">
+              <div class="metric">
+                <div class="metric-label">Traffic Score</div>
+                <div class="metric-value ${competitor.trafficScore > data.yourMetrics.trafficScore ? 'metric-higher' : 'metric-lower'}">${competitor.trafficScore}</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">Keywords</div>
+                <div class="metric-value ${competitor.keywordCount > data.yourMetrics.keywordCount ? 'metric-higher' : 'metric-lower'}">${competitor.keywordCount.toLocaleString()}</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">Backlinks</div>
+                <div class="metric-value ${competitor.backlinks > data.yourMetrics.backlinks ? 'metric-higher' : 'metric-lower'}">${competitor.backlinks.toLocaleString()}</div>
+              </div>
+              <div class="metric">
+                <div class="metric-label">Domain Authority</div>
+                <div class="metric-value ${competitor.domainAuthority > data.yourMetrics.domainAuthority ? 'metric-higher' : 'metric-lower'}">${competitor.domainAuthority}</div>
+              </div>
+            </div>
+          </div>
+        `;
+      });
+      
+      metricsHTML += '</div>';
+      gapMetricsEl.innerHTML = metricsHTML;
+    }
+    
+    // Update keyword gaps
+    const keywordGapsEl = document.getElementById('keyword-gaps');
+    if (keywordGapsEl) {
+      let gapsHTML = `
+        <table class="data-table">
+          <tr>
+            <th>Keyword</th>
+            <th>Volume</th>
+            <th>Difficulty</th>
+            <th>Competitor Rank</th>
+            <th>Your Rank</th>
+            <th>Opportunity</th>
+          </tr>
+      `;
+      
+      data.topKeywordGaps.forEach(gap => {
+        const opportunityClass = gap.opportunity === 'High' ? 'tag-success' : 
+                                 gap.opportunity === 'Medium' ? 'tag-warning' : 'tag-neutral';
+                                 
+        gapsHTML += `
+          <tr>
+            <td>${gap.keyword}</td>
+            <td>${gap.volume.toLocaleString()}</td>
+            <td>
+              <div class="progress-bar">
+                <div class="progress-fill ${gap.difficulty > 70 ? 'hard' : gap.difficulty > 40 ? 'medium' : 'easy'}" style="width: ${gap.difficulty}%"></div>
+                <span>${gap.difficulty}</span>
+              </div>
+            </td>
+            <td>#${gap.competitorRanking}</td>
+            <td>${gap.yourRanking}</td>
+            <td><span class="tag ${opportunityClass}">${gap.opportunity}</span></td>
+          </tr>
+        `;
+      });
+      
+      gapsHTML += '</table>';
+      keywordGapsEl.innerHTML = gapsHTML;
+    }
+    
+    // Update content opportunities
+    const contentOppsEl = document.getElementById('content-opportunities');
+    if (contentOppsEl) {
+      let contentHTML = `
+        <table class="data-table">
+          <tr>
+            <th>Topic</th>
+            <th>Content Type</th>
+            <th>Competitor</th>
+            <th>Potential</th>
+          </tr>
+      `;
+      
+      data.contentGaps.forEach(gap => {
+        const potentialClass = gap.potential === 'High' ? 'tag-success' : 
+                              gap.potential === 'Medium' ? 'tag-warning' : 'tag-neutral';
+                              
+        contentHTML += `
+          <tr>
+            <td>${gap.topic}</td>
+            <td>${gap.type}</td>
+            <td>${gap.competitor}</td>
+            <td><span class="tag ${potentialClass}">${gap.potential}</span></td>
+          </tr>
+        `;
+      });
+      
+      contentHTML += '</table>';
+      contentOppsEl.innerHTML = contentHTML;
+    }
+    
+    // Update backlink opportunities
+    const backlinkOppsEl = document.getElementById('backlink-opportunities');
+    if (backlinkOppsEl) {
+      let backlinkHTML = `
+        <table class="data-table">
+          <tr>
+            <th>Domain</th>
+            <th>Authority</th>
+            <th>Links To</th>
+            <th>Link Type</th>
+            <th>Potential</th>
+          </tr>
+      `;
+      
+      data.backlinkGaps.forEach(gap => {
+        const potentialClass = gap.potential === 'High' ? 'tag-success' : 
+                              gap.potential === 'Medium' ? 'tag-warning' : 'tag-neutral';
+                              
+        backlinkHTML += `
+          <tr>
+            <td>${gap.domain}</td>
+            <td>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: ${gap.authority}%"></div>
+                <span>${gap.authority}</span>
+              </div>
+            </td>
+            <td>${gap.linkingTo}</td>
+            <td><span class="tag ${gap.linkType === 'DoFollow' ? 'tag-success' : 'tag-neutral'}">${gap.linkType}</span></td>
+            <td><span class="tag ${potentialClass}">${gap.potential}</span></td>
+          </tr>
+        `;
+      });
+      
+      backlinkHTML += '</table>';
+      backlinkOppsEl.innerHTML = backlinkHTML;
+    }
+    
+    // Create/update competitor comparison chart
+    const chartCanvas = document.getElementById('competitorChart');
+    if (chartCanvas) {
+      const ctx = chartCanvas.getContext('2d');
+      
+      if (competitorChart) {
+        competitorChart.destroy();
+      }
+      
+      const theme = localStorage.getItem('themePref') || config.theme.defaultTheme;
+      const chartColors = config.chartColors[theme] || config.chartColors.light;
+      
+      // Prepare data for the chart
+      const labels = ['Traffic Score', 'Keywords', 'Backlinks', 'Domain Authority'];
+      
+      // Normalize data to be comparable
+      const maxKeywords = Math.max(
+        data.yourMetrics.keywordCount, 
+        ...data.competitorMetrics.map(c => c.keywordCount)
+      );
+      
+      const maxBacklinks = Math.max(
+        data.yourMetrics.backlinks, 
+        ...data.competitorMetrics.map(c => c.backlinks)
+      );
+      
+      const normalizeKeywords = (value) => (value / maxKeywords) * 100;
+      const normalizeBacklinks = (value) => (value / maxBacklinks) * 100;
+      
+      // Your domain dataset
+      const yourData = [
+        data.yourMetrics.trafficScore,
+        normalizeKeywords(data.yourMetrics.keywordCount),
+        normalizeBacklinks(data.yourMetrics.backlinks),
+        data.yourMetrics.domainAuthority
+      ];
+      
+      // Competitors datasets
+      const competitorDatasets = data.competitorMetrics.map((competitor, index) => {
+        return {
+          label: competitor.domain,
+          data: [
+            competitor.trafficScore,
+            normalizeKeywords(competitor.keywordCount),
+            normalizeBacklinks(competitor.backlinks),
+            competitor.domainAuthority
+          ],
+          backgroundColor: [
+            chartColors.accentColor, 
+            chartColors.secondAccent, 
+            chartColors.thirdAccent, 
+            'rgba(153, 102, 255, 0.6)'
+          ][index % 4],
+          borderColor: [
+            chartColors.accentColor.replace('0.6', '1'), 
+            chartColors.secondAccent.replace('0.6', '1'), 
+            chartColors.thirdAccent.replace('0.6', '1'), 
+            'rgba(153, 102, 255, 1)'
+          ][index % 4],
+          borderWidth: 1
+        };
+      });
+      
+      competitorChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: data.yourMetrics.domain,
+              data: yourData,
+              backgroundColor: chartColors.backgroundColor,
+              borderColor: chartColors.borderColor,
+              borderWidth: 1
+            },
+            ...competitorDatasets
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Score (Normalized)'
+              }
+            }
+          },
+          plugins: {
+            title: {
+              display: true,
+              text: 'Competitor Comparison'
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const label = context.dataset.label || '';
+                  const value = context.raw;
+                  
+                  // For keywords and backlinks, show the actual values
+                  if (context.dataIndex === 1) { // Keywords
+                    const actualValue = context.datasetIndex === 0 
+                      ? data.yourMetrics.keywordCount 
+                      : data.competitorMetrics[context.datasetIndex - 1].keywordCount;
+                    return `${label}: ${actualValue.toLocaleString()} keywords`;
+                  } else if (context.dataIndex === 2) { // Backlinks
+                    const actualValue = context.datasetIndex === 0 
+                      ? data.yourMetrics.backlinks 
+                      : data.competitorMetrics[context.datasetIndex - 1].backlinks;
+                    return `${label}: ${actualValue.toLocaleString()} backlinks`;
+                  }
+                  
+                  return `${label}: ${value}`;
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+    
+    // Create radar chart for gap analysis
+    const radarCanvas = document.getElementById('gapRadarChart');
+    if (radarCanvas) {
+      const ctx = radarCanvas.getContext('2d');
+      
+      if (gapRadarChart) {
+        gapRadarChart.destroy();
+      }
+      
+      const theme = localStorage.getItem('themePref') || config.theme.defaultTheme;
+      const chartColors = config.chartColors[theme] || config.chartColors.light;
+      
+      // Radar chart with more comprehensive metrics
+      const labels = [
+        'Traffic Score', 
+        'Keywords', 
+        'Backlinks', 
+        'Content Count', 
+        'Domain Authority', 
+        'Social Signals',
+        'Load Speed',
+        'Mobile Score'
+      ];
+      
+      // Normalize all data for radar chart
+      const maxValues = {
+        trafficScore: Math.max(data.yourMetrics.trafficScore, ...data.competitorMetrics.map(c => c.trafficScore)),
+        keywordCount: Math.max(data.yourMetrics.keywordCount, ...data.competitorMetrics.map(c => c.keywordCount)),
+        backlinks: Math.max(data.yourMetrics.backlinks, ...data.competitorMetrics.map(c => c.backlinks)),
+        contentCount: Math.max(data.yourMetrics.contentCount, ...data.competitorMetrics.map(c => c.contentCount)),
+        domainAuthority: Math.max(data.yourMetrics.domainAuthority, ...data.competitorMetrics.map(c => c.domainAuthority)),
+        socialSignals: Math.max(data.yourMetrics.socialSignals, ...data.competitorMetrics.map(c => c.socialSignals)),
+        loadSpeed: Math.max(data.yourMetrics.loadSpeed, ...data.competitorMetrics.map(c => c.loadSpeed)),
+        mobileScore: Math.max(data.yourMetrics.mobileScore, ...data.competitorMetrics.map(c => c.mobileScore))
       };
       
-      if (templates[this.value] && mermaidEditor) {
-        mermaidEditor.value = templates[this.value];
-        renderMermaid();
-      }
-      this.value = '';
-    });
+      const normalize = (value, metric) => (value / maxValues[metric]) * 100;
+      
+      // Your domain radar data
+      const yourRadarData = [
+        normalize(data.yourMetrics.trafficScore, 'trafficScore'),
+        normalize(data.yourMetrics.keywordCount, 'keywordCount'),
+        normalize(data.yourMetrics.backlinks, 'backlinks'),
+        normalize(data.yourMetrics.contentCount, 'contentCount'),
+        normalize(data.yourMetrics.domainAuthority, 'domainAuthority'),
+        normalize(data.yourMetrics.socialSignals, 'socialSignals'),
+        normalize(data.yourMetrics.loadSpeed, 'loadSpeed'),
+        normalize(data.yourMetrics.mobileScore, 'mobileScore')
+      ];
+      
+      // Competitors radar data
+      const competitorRadarDatasets = data.competitorMetrics.map((competitor, index) => {
+        return {
+          label: competitor.domain,
+          data: [
+            normalize(competitor.trafficScore, 'trafficScore'),
+            normalize(competitor.keywordCount, 'keywordCount'),
+            normalize(competitor.backlinks, 'backlinks'),
+            normalize(competitor.contentCount, 'contentCount'),
+            normalize(competitor.domainAuthority, 'domainAuthority'),
+            normalize(competitor.socialSignals, 'socialSignals'),
+            normalize(competitor.loadSpeed, 'loadSpeed'),
+            normalize(competitor.mobileScore, 'mobileScore')
+          ],
+          backgroundColor: [
+            chartColors.accentColor, 
+            chartColors.secondAccent, 
+            chartColors.thirdAccent, 
+            'rgba(153, 102, 255, 0.6)'
+          ][index % 4].replace('0.6', '0.2'),
+          borderColor: [
+            chartColors.accentColor.replace('0.6', '1'), 
+            chartColors.secondAccent.replace('0.6', '1'), 
+            chartColors.thirdAccent.replace('0.6', '1'), 
+            'rgba(153, 102, 255, 1)'
+          ][index % 4],
+          borderWidth: 1
+        };
+      });
+      
+      gapRadarChart = new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: data.yourMetrics.domain,
+              data: yourRadarData,
+              backgroundColor: chartColors.backgroundColor,
+              borderColor: chartColors.borderColor,
+              borderWidth: 1
+            },
+            ...competitorRadarDatasets
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            r: {
+              min: 0,
+              max: 100,
+              ticks: {
+                display: false
+              }
+            }
+          },
+          plugins: {
+            title: {
+              display: true,
+              text: 'Comprehensive Performance Comparison'
+            },
+            tooltip: {
+              callbacks: {
+                label: function(context) {
+                  const label = context.dataset.label || '';
+                  const index = context.dataIndex;
+                  const metrics = ['trafficScore', 'keywordCount', 'backlinks', 'contentCount', 
+                                 'domainAuthority', 'socialSignals', 'loadSpeed', 'mobileScore'];
+                  const metric = metrics[index];
+                  
+                  const value = context.datasetIndex === 0 
+                    ? data.yourMetrics[metric] 
+                    : data.competitorMetrics[context.datasetIndex - 1][metric];
+                  
+                  // Format based on metric type
+                  if (metric === 'keywordCount' || metric === 'backlinks' || metric === 'socialSignals') {
+                    return `${label}: ${value.toLocaleString()}`;
+                  } else {
+                    return `${label}: ${value}`;
+                  }
+                }
+              }
+            }
+          }
+        }
+      });
+    }
   }
 }
