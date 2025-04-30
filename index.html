@@ -4,25 +4,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>SEO Tools Suite</title>
   <link rel="stylesheet" href="styles.css">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script type="importmap">
-  {
-    "imports": {
-      "marked": "https://cdn.jsdelivr.net/npm/marked/marked.min.js",
-      "mermaid": "https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.esm.min.mjs"
-    }
-  }
-  </script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
+  <!-- Theme switcher will be added via JavaScript -->
   
   <header>
     <div class="container">
-      <img href="https://www.holisticgrowthmarketing.com" src="https://cdn.prod.website-files.com/65db95957d65c02ae759f762/66e3098f363782169710b708_White%20New%20Logo%20AUG%202024%201.avif" alt="logo" style="width:15rem; height: auto;padding-left:4rem;">
       <h1>SEO Tools Suite</h1>
       <p>Professional tools for content analysis and optimization</p>
     </div>
@@ -37,8 +25,6 @@
       <button class="nav-btn" data-tool="meta-tags">Meta Tags Generator</button>
       <button class="nav-btn" data-tool="schema-generator">Schema Generator</button>
       <button class="nav-btn" data-tool="keyword-database">Keyword Database</button>
-      <button class="nav-btn" data-tool="backlink-checker">Backlink Checker</button>
-      <button class="nav-btn" data-tool="competitor-gap">Competitor Gap</button>
       <button class="nav-btn" data-tool="sentiment-analysis">Sentiment Analysis</button>
       <button class="nav-btn" data-tool="content-editor">Content Editor</button>
     </div>
@@ -175,16 +161,12 @@
             <option value="Event">Event</option>
             <option value="Article">Article</option>
             <option value="FAQ">FAQ Page</option>
-            <option value="Recipe">Recipe</option>
-            <option value="JobPosting">Job Posting</option>
-            <option value="WebSite">Website</option>
           </select>
         </div>
         <div id="schema-fields-container">
           <!-- Dynamic fields will be added here -->
         </div>
         <button class="analyze-btn" id="generate-schema-btn">Generate Schema</button>
-        <button class="analyze-btn" id="validate-schema-btn">Validate Schema</button>
       </div>
       <div class="results">
         <div class="card">
@@ -193,12 +175,10 @@
           <button id="copy-schema" class="copy-btn">Copy to Clipboard</button>
         </div>
         <div class="card">
-          <h3>Schema Content Analysis</h3>
-          <textarea id="schema-content-analysis" placeholder="Paste your page content here for AI-powered schema suggestions..."></textarea>
-          <button class="analyze-btn" id="suggest-schema-btn">Analyze & Suggest Schema</button>
+          <h3>Schema Information</h3>
           <div id="schema-info">
             <p>Schema markup helps search engines understand your content better, potentially enhancing your search results with rich snippets.</p>
-            <p>Select a schema type above to get started, or paste your content for AI-powered suggestions.</p>
+            <p>Select a schema type above to get started.</p>
           </div>
         </div>
       </div>
@@ -225,87 +205,6 @@
               <canvas id="keywordTrendChart"></canvas>
             </div>
           </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="tool-container" id="backlink-checker">
-      <h2>Backlink Checker</h2>
-      <div class="tool-input">
-        <div class="form-group">
-          <label>Enter Domain</label>
-          <input type="url" id="backlink-domain" placeholder="Enter domain to analyze (e.g., example.com)">
-        </div>
-        <button class="analyze-btn" id="check-backlinks-btn">Check Backlinks</button>
-      </div>
-      <div class="results">
-        <div class="result-cards">
-          <div class="card">
-            <h3>Backlink Summary</h3>
-            <div id="backlink-summary"></div>
-          </div>
-          <div class="card">
-            <h3>Referring Domains</h3>
-            <div id="referring-domains"></div>
-          </div>
-        </div>
-        <div class="chart-container">
-          <canvas id="backlinkChart"></canvas>
-        </div>
-        <div class="visualization-container">
-          <div class="domain-map" id="domainMap"></div>
-        </div>
-        <div class="card backlink-list">
-          <h3>Top Backlinks</h3>
-          <div id="backlink-list"></div>
-        </div>
-      </div>
-    </div>
-
-    <div class="tool-container" id="competitor-gap">
-      <h2>Competitor Gap Analysis</h2>
-      <div class="tool-input">
-        <div class="form-fields">
-          <div class="form-group">
-            <label>Your Domain</label>
-            <input type="url" id="your-domain" placeholder="Enter your domain (e.g., example.com)">
-          </div>
-          <div class="form-group">
-            <label>Competitor 1</label>
-            <input type="url" id="competitor1" placeholder="Enter competitor domain">
-          </div>
-          <div class="form-group">
-            <label>Competitor 2 (optional)</label>
-            <input type="url" id="competitor2" placeholder="Enter competitor domain">
-          </div>
-          <div class="form-group">
-            <label>Competitor 3 (optional)</label>
-            <input type="url" id="competitor3" placeholder="Enter competitor domain">
-          </div>
-        </div>
-        <button class="analyze-btn" id="analyze-competitors-btn">Analyze Competitors</button>
-      </div>
-      <div class="results">
-        <div class="gap-metrics" id="gap-metrics"></div>
-        <div class="chart-container">
-          <canvas id="competitorChart"></canvas>
-        </div>
-        <div class="result-cards">
-          <div class="card">
-            <h3>Keyword Gaps</h3>
-            <div id="keyword-gaps"></div>
-          </div>
-          <div class="card">
-            <h3>Content Opportunities</h3>
-            <div id="content-opportunities"></div>
-          </div>
-          <div class="card">
-            <h3>Backlink Opportunities</h3>
-            <div id="backlink-opportunities"></div>
-          </div>
-        </div>
-        <div class="chart-container">
-          <canvas id="gapRadarChart"></canvas>
         </div>
       </div>
     </div>
@@ -446,6 +345,6 @@
     </div>
   </div>
 
-  <script type="module" src="main.js"></script>
+  <script src="main.js"></script>
 </body>
 </html>
